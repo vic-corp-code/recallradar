@@ -12,6 +12,8 @@ The product does not promise exact recall confirmation from a receipt alone. Its
 
 The app should be installable on Android and iOS as a PWA. It can also be used on laptops and desktops, but the primary experience is designed for mobile users.
 
+The MVP launch market is France.
+
 ## Core Promise
 
 Import your receipt and quickly see whether any recent grocery purchase may require verification against an active recall.
@@ -228,15 +230,36 @@ The app should never say an item is definitely recalled unless the available evi
 
 ## Data Sources
 
-Initial recall data sources should prioritize official or high-trust sources, such as:
+The MVP should be France-first.
 
-- FDA recalls
-- USDA FSIS recalls
-- CPSC recalls
-- Health Canada or EU sources in later regions
-- Retailer or manufacturer recall pages in later phases
+Primary source:
 
-For MVP, pick one launch market first. The recommended first market is the United States because official recall data sources are accessible and consumer recall behavior is well documented.
+- RappelConso official open data/API for French consumer product recalls.
+
+RappelConso should be treated as the canonical MVP recall source because it is the official French public platform for product recalls, covering food and non-food consumer products declared by professionals.
+
+Useful RappelConso data fields include:
+
+- Recall reference
+- Product category and subcategory
+- Brand or product name
+- Model, reference, batch, lot, GTIN, or barcode when available
+- Geographic sales area
+- Distributor information when available
+- Reason for recall
+- Consumer risk
+- Recommended consumer action
+- Recall publication date
+- Recall detail URL
+- Product image URLs when available
+
+Secondary and later sources:
+
+- ANSM for medicines and medical devices, if the product scope expands beyond grocery and consumer goods.
+- EU Safety Gate for broader European non-food product alerts.
+- Retailer or manufacturer recall pages only when official data is incomplete and a clear source policy exists.
+
+Scraping should not be the default ingestion strategy for MVP. Prefer official APIs, open datasets, RSS feeds, or structured exports. Use scraping only as a fallback for specific missing sources, and clearly track source reliability.
 
 ## Product Risks
 

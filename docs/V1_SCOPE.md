@@ -7,7 +7,8 @@
 - Clerk authentication with Google, Microsoft, and email sign-up.
 - Receipt import from image, screenshot, and PDF.
 - Receipt processing that extracts store, purchase date, and line items.
-- Active recall comparison for extracted items.
+- Active recall comparison for extracted items using France-first recall data.
+- RappelConso ingestion from the official open data/API.
 - Confidence-based match results.
 - Receipt analysis result screen.
 - Recall detail screen with source, match reason, verification guidance, and recommended action.
@@ -42,6 +43,7 @@
 - Advanced analytics.
 - Shopping habit prediction.
 - Multi-country recall coverage.
+- Medicine and medical device recall coverage.
 
 ## Recommended MVP Cut
 
