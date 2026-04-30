@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RecallRadar
+
+RecallRadar is a PWA for checking whether recent grocery purchases may be affected by active product recalls.
+
+The core flow is:
+
+Receipt in -> product extraction -> recall matching -> user verification.
+
+The product does not promise exact recall confirmation from receipt data alone. It highlights possible risks, explains why an item may match a recall, and guides the user toward manual verification when packaging details are needed.
+
+## Product Docs
+
+- [Product Requirements Document](docs/PRD.md)
+- [V1 Scope](docs/V1_SCOPE.md)
+- [Design Brief](docs/DESIGN_BRIEF.md)
+
+## Current Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
+```
+
+Run the development server:
+
+```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development Notes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This repository was bootstrapped with `create-next-app`.
 
-## Learn More
+The app currently uses the `src/app` directory:
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app/page.tsx`
+- `src/app/layout.tsx`
+- `src/app/globals.css`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Before changing Next.js application code, check `AGENTS.md`. This project uses a Next.js version with potential breaking changes, so local framework docs may need to be consulted before implementation.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## MVP Direction
 
-## Deploy on Vercel
+The first product milestone should prove the main loop:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. User imports a receipt.
+2. The app extracts store, date, and line items.
+3. Items are compared with active recalls.
+4. Suspicious items are shown with confidence levels.
+5. The user receives clear verification guidance.
+6. The user can save a simple status for each flagged item.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Barcode scanning and product photo verification are useful secondary actions, but the receipt import loop should remain the primary MVP path.
