@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RecallRadar · History</title>
+  <style>
+    :root {
+      --bg:      #f5f0e8;
+      --surface: #faf8f4;
+      --fg:      #2a2520;
+      --muted:   #8a8278;
+      --border:  #e2ddd5;
+      --accent:  #c47a4a;
+      --accent-soft: rgba(196, 122, 74, 0.12);
+      --safe:    #3a8a5c;
+      --warn:    #b84233;
+
+      --font-display: 'Tiempos Headline', 'Newsreader', 'Iowan Old Style', Georgia, serif;
+      --font-body:    'Söhne', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono:    ui-monospace, 'SF Mono', Menlo, monospace;
+
+      --radius-card: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+    .screen { display: flex; flex-direction: column; height: 100%; }
+    .statusbar {
+      flex: 0 0 47px;
+      padding: 18px 26px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 15px; font-weight: 600; color: var(--fg); letter-spacing: -0.01em;
+    }
+    .statusbar .right { display: inline-flex; align-items: center; gap: 6px; }
+    .statusbar svg { width: 17px; height: 11px; fill: var(--fg); }
+    .statusbar .battery { width: 25px; }
+    .content {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 0 8px;
+    }
+    .content::-webkit-scrollbar { display: none; }
+    .pad { padding-inline: 20px; }
+    .meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+    .num  { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+    .header {
+      padding: 8px 20px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 16px;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .history-shop { font-size: 14px; font-weight: 500; line-height: 1.3; }
+    .history-detail { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .history-status {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+    }
+    .history-status.safe { color: var(--safe); }
+    .history-status.warn { color: var(--warn); }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.safe { background: var(--safe); }
+    .status-dot.warn { background: var(--warn); }
+    .history-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+      white-space: nowrap;
+      padding-top: 2px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 12px;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      display: inline-flex;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+    }
+    .filter-pill.active {
+      background: var(--accent-soft);
+      border-color: transparent;
+      color: var(--accent);
+    }
+
+    .tabbar {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 8px 8px 0;
+      border-top: 1px solid var(--border);
+      background: color-mix(in oklch, var(--surface) 92%, transparent);
+      backdrop-filter: blur(20px);
+    }
+    .tab {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px 0;
+      color: var(--muted); font-size: 10px; letter-spacing: 0.02em;
+    }
+    .tab.active { color: var(--accent); }
+    .tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .tab.active svg { stroke-width: 2; }
+
+    .home-indicator { flex: 0 0 28px; position: relative; }
+    .home-indicator::after {
+      content: '';
+      position: absolute; left: 50%; bottom: 8px;
+      transform: translateX(-50%);
+      width: 134px; height: 5px;
+      background: var(--fg); border-radius: 999px; opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">
+      <span class="num">9:41</span>
+      <span class="right">
+        <svg viewBox="0 0 17 11" aria-hidden><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4" y="5" width="3" height="6" rx="0.6"/><rect x="8" y="3" width="3" height="8" rx="0.6"/><rect x="12" y="0" width="3" height="11" rx="0.6"/></svg>
+        <svg viewBox="0 0 17 11" aria-hidden><path d="M8.5 1.5C5.5 1.5 2.7 2.6 0.5 4.6L2 6.1C3.8 4.5 6.1 3.6 8.5 3.6c2.4 0 4.7 0.9 6.5 2.5l1.5-1.5c-2.2-2-5-3.1-8-3.1zM3.5 7.6L5 9.1c1-0.9 2.2-1.4 3.5-1.4 1.3 0 2.5 0.5 3.5 1.4l1.5-1.5c-1.4-1.3-3.1-2-5-2-1.9 0-3.6 0.7-5 2zM6.5 10.6l2 2 2-2c-0.5-0.5-1.2-0.8-2-0.8s-1.5 0.3-2 0.8z"/></svg>
+        <svg class="battery" viewBox="0 0 25 11" aria-hidden><rect x="0.5" y="0.5" width="21" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-opacity="0.45"/><rect x="22" y="3.5" width="1.5" height="4" rx="0.4" fill="currentColor" fill-opacity="0.45"/><rect x="2" y="2" width="18" height="7" rx="1.4"/></svg>
+      </span>
+    </div>
+
+    <main class="content" data-od-id="content">
+      <div class="header" data-od-id="header">
+        <h1>Historique</h1>
+      </div>
+
+      <section class="pad" data-od-id="filters">
+        <div class="filter-row">
+          <span class="filter-pill active">Tous</span>
+          <span class="filter-pill">Alertes</span>
+          <span class="filter-pill">Ce mois</span>
+        </div>
+      </section>
+
+      <section class="pad" data-od-id="history-list">
+        <div class="history-item">
+          <div>
+            <div class="history-shop">Carrefour — Leclerc Saint-Michel</div>
+            <div class="history-detail">
+              <span>14 produits</span>
+              <span>·</span>
+              <span class="history-status safe"><span class="status-dot safe"></span>Aucun rappel</span>
+            </div>
+          </div>
+          <div class="history-date">Hier</div>
+        </div>
+
+        <div class="history-item">
+          <div>
+            <div class="history-shop">Lidl — Avenue de la République</div>
+            <div class="history-detail">
+              <span>9 produits</span>
+              <span>·</span>
+              <span class="history-status warn"><span class="status-dot warn"></span>1 à vérifier</span>
+            </div>
+          </div>
+          <div class="history-date">Sam.</div>
+        </div>
+
+        <div class="history-item">
+          <div>
+            <div class="history-shop">Monoprix — Rue de Rivoli</div>
+            <div class="history-detail">
+              <span>11 produits</span>
+              <span>·</span>
+              <span class="history-status safe"><span class="status-dot safe"></span>Aucun rappel</span>
+            </div>
+          </div>
+          <div class="history-date">8 avr.</div>
+        </div>
+
+        <div class="history-item">
+          <div>
+            <div class="history-shop">Intermarché — Place Denfert</div>
+            <div class="history-detail">
+              <span>7 produits</span>
+              <span>·</span>
+              <span class="history-status safe"><span class="status-dot safe"></span>Aucun rappel</span>
+            </div>
+          </div>
+          <div class="history-date">2 avr.</div>
+        </div>
+
+        <div class="history-item">
+          <div>
+            <div class="history-shop">Carrefour Market — Bd Voltaire</div>
+            <div class="history-detail">
+              <span>16 produits</span>
+              <span>·</span>
+              <span class="history-status safe"><span class="status-dot safe"></span>Aucun rappel</span>
+            </div>
+          </div>
+          <div class="history-date">28 mars</div>
+        </div>
+
+        <div class="history-item">
+          <div>
+            <div class="history-shop">Auchan — La Défense</div>
+            <div class="history-detail">
+              <span>22 produits</span>
+              <span>·</span>
+              <span class="history-status warn"><span class="status-dot warn"></span>2 à vérifier</span>
+            </div>
+          </div>
+          <div class="history-date">21 mars</div>
+        </div>
+
+        <div class="history-item">
+          <div>
+            <div class="history-shop">Leader Price — Rue Oberkampf</div>
+            <div class="history-detail">
+              <span>6 produits</span>
+              <span>·</span>
+              <span class="history-status safe"><span class="status-dot safe"></span>Aucun rappel</span>
+            </div>
+          </div>
+          <div class="history-date">15 mars</div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar" style="--tabs: 3;" data-od-id="tabbar">
+      <a class="tab">
+        <svg viewBox="0 0 24 24"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+        Accueil
+      </a>
+      <a class="tab">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scanner
+      </a>
+      <a class="tab active">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Historique
+      </a>
+    </nav>
+
+    <div class="home-indicator" aria-hidden></div>
+  </div>
+</body>
+</html>

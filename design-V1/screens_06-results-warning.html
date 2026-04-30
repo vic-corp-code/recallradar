@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RecallRadar · Results Warning</title>
+  <style>
+    :root {
+      --bg:      #f5f0e8;
+      --surface: #faf8f4;
+      --fg:      #2a2520;
+      --muted:   #8a8278;
+      --border:  #e2ddd5;
+      --accent:  #c47a4a;
+      --accent-soft: rgba(196, 122, 74, 0.12);
+      --safe:    #3a8a5c;
+      --safe-soft: rgba(58, 138, 92, 0.10);
+      --warn:    #b84233;
+      --warn-soft: rgba(184, 66, 51, 0.08);
+
+      --font-display: 'Tiempos Headline', 'Newsreader', 'Iowan Old Style', Georgia, serif;
+      --font-body:    'Söhne', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono:    ui-monospace, 'SF Mono', Menlo, monospace;
+
+      --radius-card: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+    .screen { display: flex; flex-direction: column; height: 100%; }
+    .statusbar {
+      flex: 0 0 47px;
+      padding: 18px 26px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 15px; font-weight: 600; color: var(--fg); letter-spacing: -0.01em;
+    }
+    .statusbar .right { display: inline-flex; align-items: center; gap: 6px; }
+    .statusbar svg { width: 17px; height: 11px; fill: var(--fg); }
+    .statusbar .battery { width: 25px; }
+    .content {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 0 0 28px;
+    }
+    .content::-webkit-scrollbar { display: none; }
+    .pad { padding-inline: 20px; }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+    .num  { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 16px;
+    }
+    .card.warn-card {
+      background: var(--warn-soft);
+      border-color: rgba(184, 66, 51, 0.2);
+    }
+
+    .hero-warn {
+      width: 80px; height: 80px;
+      margin: 16px auto;
+      border-radius: 50%;
+      background: var(--warn-soft);
+      border: 2px solid var(--warn);
+      display: grid; place-items: center;
+    }
+    .hero-warn svg { width: 36px; height: 36px; stroke: var(--warn); fill: none; stroke-width: 2.5; }
+
+    .flagged-item {
+      display: flex;
+      gap: 14px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid rgba(184, 66, 51, 0.18);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .flagged-icon {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      background: var(--warn-soft);
+      border: 1px solid rgba(184, 66, 51, 0.15);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .flagged-icon svg { width: 20px; height: 20px; stroke: var(--warn); fill: none; stroke-width: 1.8; }
+    .flagged-body { flex: 1; }
+    .flagged-name { font-size: 14px; font-weight: 600; line-height: 1.3; }
+    .flagged-detail { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+    .flagged-action {
+      font-size: 12px;
+      color: var(--warn);
+      font-weight: 500;
+      margin-top: 6px;
+    }
+    .flagged-chevron {
+      display: grid; place-items: center;
+      color: var(--muted);
+    }
+    .flagged-chevron svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    .safe-product {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+    }
+    .safe-product:first-child { border-top: 0; }
+    .safe-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--safe);
+      flex-shrink: 0;
+    }
+    .safe-name { flex: 1; font-size: 14px; color: var(--muted); }
+
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: 48px;
+      padding: 14px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      border-radius: 14px;
+      font: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tabbar {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 8px 8px 0;
+      border-top: 1px solid var(--border);
+      background: color-mix(in oklch, var(--surface) 92%, transparent);
+      backdrop-filter: blur(20px);
+    }
+    .tab {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px 0;
+      color: var(--muted); font-size: 10px; letter-spacing: 0.02em;
+    }
+    .tab.active { color: var(--accent); }
+    .tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .tab.active svg { stroke-width: 2; }
+
+    .home-indicator { flex: 0 0 28px; position: relative; }
+    .home-indicator::after {
+      content: '';
+      position: absolute; left: 50%; bottom: 8px;
+      transform: translateX(-50%);
+      width: 134px; height: 5px;
+      background: var(--fg); border-radius: 999px; opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <div class="statusbar">
+      <span class="num">9:41</span>
+      <span class="right">
+        <svg viewBox="0 0 17 11" aria-hidden><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4" y="5" width="3" height="6" rx="0.6"/><rect x="8" y="3" width="3" height="8" rx="0.6"/><rect x="12" y="0" width="3" height="11" rx="0.6"/></svg>
+        <svg viewBox="0 0 17 11" aria-hidden><path d="M8.5 1.5C5.5 1.5 2.7 2.6 0.5 4.6L2 6.1C3.8 4.5 6.1 3.6 8.5 3.6c2.4 0 4.7 0.9 6.5 2.5l1.5-1.5c-2.2-2-5-3.1-8-3.1zM3.5 7.6L5 9.1c1-0.9 2.2-1.4 3.5-1.4 1.3 0 2.5 0.5 3.5 1.4l1.5-1.5c-1.4-1.3-3.1-2-5-2-1.9 0-3.6 0.7-5 2zM6.5 10.6l2 2 2-2c-0.5-0.5-1.2-0.8-2-0.8s-1.5 0.3-2 0.8z"/></svg>
+        <svg class="battery" viewBox="0 0 25 11" aria-hidden><rect x="0.5" y="0.5" width="21" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-opacity="0.45"/><rect x="22" y="3.5" width="1.5" height="4" rx="0.4" fill="currentColor" fill-opacity="0.45"/><rect x="2" y="2" width="18" height="7" rx="1.4"/></svg>
+      </span>
+    </div>
+
+    <main class="content" data-od-id="content">
+      <section class="pad" style="text-align: center; padding-top: 16px;" data-od-id="hero">
+        <div class="hero-warn">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h1 style="font-family: var(--font-display); font-size: 24px; letter-spacing: -0.02em; margin: 8px 0 4px; color: var(--warn);">Produit à vérifier</h1>
+        <p style="margin: 0; color: var(--muted); font-size: 14px; max-width: 30ch;">Un produit correspond à un rappel en cours. Vérifiez avant de consommer.</p>
+      </section>
+
+      <section class="pad" data-od-id="summary" style="margin-top: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div class="card" style="text-align: center; padding: 14px 8px;">
+            <div class="num" style="font-size: 22px; color: var(--safe);">13</div>
+            <div class="meta" style="font-size: 11px; margin-top: 2px;">Vérifiés</div>
+          </div>
+          <div class="card warn-card" style="text-align: center; padding: 14px 8px;">
+            <div class="num" style="font-size: 22px; color: var(--warn);">1</div>
+            <div class="meta" style="font-size: 11px; margin-top: 2px; color: var(--warn);">À vérifier</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 14px 8px;">
+            <div class="num" style="font-size: 22px;">18,70</div>
+            <div class="meta" style="font-size: 11px; margin-top: 2px;">Total</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pad" data-od-id="flagged" style="margin-top: 20px;">
+        <p class="meta" style="margin: 0 0 10px; color: var(--warn);">À VÉRIFIER</p>
+        <div class="flagged-item">
+          <div class="flagged-icon">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="flagged-body">
+            <div class="flagged-name">Yaourt nature Lactel 4×125g</div>
+            <div class="flagged-detail">Lot 325A · DLC 15 mai 2025</div>
+            <div class="flagged-action">Voir les détails du rappel</div>
+          </div>
+          <div class="flagged-chevron">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="pad" data-od-id="safe-products" style="margin-top: 8px;">
+        <p class="meta" style="margin: 0 0 6px;">AUTRES PRODUITS — AUCUN RAPPEL</p>
+        <div class="card" style="padding: 4px 16px;">
+          <div class="safe-product">
+            <span class="safe-dot"></span>
+            <span class="safe-name">Lait demi-écrémé 1L</span>
+          </div>
+          <div class="safe-product">
+            <span class="safe-dot"></span>
+            <span class="safe-name">Pain de mie Harry's</span>
+          </div>
+          <div class="safe-product">
+            <span class="safe-dot"></span>
+            <span class="safe-name">Jambon blanc Fleury Michaud</span>
+          </div>
+          <div class="safe-product">
+            <span class="safe-dot"></span>
+            <span class="safe-name">Beurre doux Président 250g</span>
+          </div>
+        </div>
+        <p style="margin: 10px 0 0; text-align: center; font-size: 13px; color: var(--muted);">+ 9 autres produits vérifiés</p>
+      </section>
+
+      <section class="pad" style="margin-top: 24px; padding-bottom: 8px;" data-od-id="cta">
+        <button class="btn-primary">Scanner un autre ticket</button>
+      </section>
+    </main>
+
+    <nav class="tabbar" style="--tabs: 3;" data-od-id="tabbar">
+      <a class="tab active">
+        <svg viewBox="0 0 24 24"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+        Accueil
+      </a>
+      <a class="tab">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scanner
+      </a>
+      <a class="tab">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Historique
+      </a>
+    </nav>
+
+    <div class="home-indicator" aria-hidden></div>
+  </div>
+</body>
+</html>

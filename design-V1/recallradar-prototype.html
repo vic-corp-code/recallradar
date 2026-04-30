@@ -1,0 +1,127 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RecallRadar — Mobile App Prototype</title>
+  <style>
+    :root {
+      --bg:      #f5f0e8;
+      --surface: #faf8f4;
+      --fg:      #2a2520;
+      --muted:   #8a8278;
+      --border:  #e2ddd5;
+      --accent:  #c47a4a;
+      --font-display: 'Tiempos Headline', 'Newsreader', 'Iowan Old Style', Georgia, serif;
+      --font-body:    'Söhne', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono:    ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      color: var(--fg);
+    }
+    .gallery-header {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 32px 0;
+    }
+    .gallery-header h1 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      letter-spacing: -0.025em;
+      margin: 0 0 4px;
+    }
+    .gallery-header p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+    .gallery {
+      max-width: 1400px;
+      margin: 32px auto 0;
+      padding: 0 32px 60px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+    }
+    .frame-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .frame-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .frame-label strong {
+      color: var(--fg);
+      font-weight: 500;
+    }
+    .frame-label .step {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .frame-wrap iframe {
+      border: none;
+      border-radius: 56px;
+      box-shadow:
+        0 28px 60px -12px rgba(0,0,0,0.25),
+        0 8px 20px -8px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 900px) {
+      .gallery { gap: 24px; padding: 0 16px 40px; }
+      .frame-wrap iframe { transform: scale(0.85); transform-origin: top center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="gallery-header">
+    <h1>RecallRadar</h1>
+    <p>Prototype mobile — 8 écrans · PWA · Marché France</p>
+  </header>
+  <main class="gallery" data-od-id="gallery">
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">01</span> · Welcome</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/01-welcome.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">02</span> · Accueil</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/02-home.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">03</span> · Scanner</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/03-scan.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">04</span> · Analyse</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/04-processing.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">05</span> · Résultats — clair</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/05-results-safe.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">06</span> · Résultats — alerte</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/06-results-warning.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">07</span> · Détails produit</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/07-item-detail.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+    <div class="frame-wrap">
+      <div class="frame-label"><span class="step">08</span> · Historique</div>
+      <iframe src="/frames/iphone-15-pro.html?screen=screens/08-history.html" width="390" height="844" loading="lazy"></iframe>
+    </div>
+  </main>
+</body>
+</html>
