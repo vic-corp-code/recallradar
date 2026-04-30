@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="RecallRadar icon">
+  <rect width="512" height="512" rx="112" fill="#0f766e"/>
+  <circle cx="256" cy="256" r="162" fill="#fbfaf7" opacity="0.96"/>
+  <path d="M162 176h188c15.5 0 28 12.5 28 28v152c0 15.5-12.5 28-28 28H162c-15.5 0-28-12.5-28-28V204c0-15.5 12.5-28 28-28Z" fill="#0f766e"/>
+  <path d="M186 219h140M186 260h104M186 301h82" stroke="#fbfaf7" stroke-width="24" stroke-linecap="round"/>
+  <path d="M341 151l33 33 56-66" fill="none" stroke="#f59e0b" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="354" cy="334" r="58" fill="#fbfaf7"/>
+  <path d="M354 300v39" stroke="#dc2626" stroke-width="22" stroke-linecap="round"/>
+  <circle cx="354" cy="369" r="11" fill="#dc2626"/>
+</svg>
