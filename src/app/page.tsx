@@ -39,12 +39,18 @@ export default function Home() {
 
             <div className="mt-8 grid gap-3">
               <Button asChild size="lg">
+                <Link href="/check">
+                  <ScanLine aria-hidden="true" />
+                  Open app shell
+                </Link>
+              </Button>
+              <Button asChild size="lg">
                 <Link href="/sign-in">
                   <Mail aria-hidden="true" />
                   Sign in with Clerk
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button asChild size="lg" variant="secondary">
                 <Link href="/sign-up">Create profile</Link>
               </Button>
             </div>
