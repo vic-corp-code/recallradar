@@ -1,9 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { CalendarDays, Plus, Store, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  Loader2,
+  Plus,
+  Store,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import type { RecallMatchingResult } from "@/lib/recalls/matching";
 import type {
   ExtractedReceipt,
   ExtractionConfidence,
@@ -25,6 +34,10 @@ export function ExtractionReview({
     extraction.purchaseDate.value ?? "",
   );
   const [lineItems, setLineItems] = React.useState(extraction.lineItems);
+  const [isMatching, setIsMatching] = React.useState(false);
+  const [matchResult, setMatchResult] =
+    React.useState<RecallMatchingResult | null>(null);
+  const [matchError, setMatchError] = React.useState<string | null>(null);
 
   function updateLineItem(id: string, changes: Partial<ReceiptLineItem>) {
     setLineItems((items) =>
@@ -49,6 +62,62 @@ export function ExtractionReview({
     setLineItems((items) => items.filter((item) => item.id !== id));
   }
 
+  async function continueToRecallMatching() {
+    const cleanLineItems = lineItems
+      .map((item) => ({ ...item, name: item.name.trim() }))
+      .filter((item) => item.name);
+
+    if (cleanLineItems.length === 0) {
+      setMatchError("Add at least one product before recall matching.");
+      return;
+    }
+
+    setIsMatching(true);
+    setMatchError(null);
+    setMatchResult(null);
+
+    try {
+      const response = await fetch("/api/recalls/match", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          receipt: {
+            receiptId: extraction.receiptId,
+            store: {
+              name: storeName.trim() || null,
+              location: extraction.store.location,
+            },
+            purchaseDate: purchaseDate || null,
+            lineItems: cleanLineItems,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+
+        throw new Error(
+          body?.error ?? "Recall matching failed. Please try again.",
+        );
+      }
+
+      const nextMatchResult = (await response.json()) as RecallMatchingResult;
+      setMatchResult(nextMatchResult);
+    } catch (error) {
+      setMatchError(
+        error instanceof Error
+          ? error.message
+          : "Recall matching failed. Please try again.",
+      );
+    } finally {
+      setIsMatching(false);
+    }
+  }
+
   return (
     <section className="space-y-5 rounded-lg border border-border bg-card p-5 shadow-sm">
       <div>
@@ -63,6 +132,14 @@ export function ExtractionReview({
       </div>
 
       <ConfidenceNotice confidence={extraction.extractionConfidence} />
+
+      {matchResult ? <MatchingSummary result={matchResult} /> : null}
+
+      {matchError ? (
+        <p className="rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
+          {matchError}
+        </p>
+      ) : null}
 
       <div className="grid gap-4">
         <label className="grid gap-2">
@@ -120,14 +197,56 @@ export function ExtractionReview({
       </div>
 
       <div className="grid gap-3 pt-2">
-        <Button className="h-12" type="button">
-          Continue to recall matching
+        <Button
+          className="h-12"
+          disabled={isMatching}
+          onClick={continueToRecallMatching}
+          type="button"
+        >
+          {isMatching ? (
+            <Loader2 aria-hidden="true" className="animate-spin" />
+          ) : null}
+          {isMatching ? "Matching recalls..." : "Continue to recall matching"}
         </Button>
         <Button className="h-12" onClick={onBack} type="button" variant="ghost">
           Back to receipt upload
         </Button>
       </div>
     </section>
+  );
+}
+
+function MatchingSummary({ result }: { result: RecallMatchingResult }) {
+  const hasFlaggedItems = result.summary.flagged > 0;
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border p-3 text-sm leading-6",
+        hasFlaggedItems
+          ? "border-risk/30 bg-risk/10 text-risk"
+          : "border-success/30 bg-success/10 text-success",
+      )}
+    >
+      <div className="flex items-start gap-2 font-medium">
+        {hasFlaggedItems ? (
+          <AlertTriangle aria-hidden="true" className="mt-0.5 size-4" />
+        ) : (
+          <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4" />
+        )}
+        <p>
+          {hasFlaggedItems
+            ? `${result.summary.flagged} product${
+                result.summary.flagged > 1 ? "s" : ""
+              } may need verification.`
+            : "No relevant active recall match found."}
+        </p>
+      </div>
+      <p className="mt-2 text-xs opacity-80">
+        Compared {result.summary.totalItems} receipt items with{" "}
+        {result.recallCount} active RappelConso recalls.
+      </p>
+    </div>
   );
 }
 
