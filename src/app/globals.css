@@ -106,3 +106,19 @@ select,
 textarea {
   -webkit-tap-highlight-color: transparent;
 }
+
+@keyframes receipt-product-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-receipt-product-fade {
+  animation: receipt-product-fade 0.35s ease forwards;
+}

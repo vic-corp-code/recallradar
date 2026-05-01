@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -14,6 +15,11 @@ const options = [
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
+  const mounted = React.useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerSnapshot,
+  );
 
   return (
     <div
@@ -25,7 +31,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       role="group"
     >
       {options.map(({ value, label, icon: Icon }) => {
-        const isActive = theme === value;
+        const isActive = mounted && theme === value;
 
         return (
           <Button
@@ -48,4 +54,18 @@ export function ThemeToggle({ className }: { className?: string }) {
       })}
     </div>
   );
+}
+
+function subscribeToHydration(onStoreChange: () => void) {
+  queueMicrotask(onStoreChange);
+
+  return () => {};
+}
+
+function getHydratedSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
 }
