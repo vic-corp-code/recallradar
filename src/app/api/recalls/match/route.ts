@@ -8,7 +8,7 @@ import { syncRappelConsoRecalls } from "@/lib/recalls/rappelconso";
 
 export const runtime = "nodejs";
 
-const DEFAULT_RECALL_LIMIT = 500;
+const DEFAULT_RECALL_LIMIT = 100;
 
 export async function POST(request: Request) {
   let receipt: MatchableReceipt;
