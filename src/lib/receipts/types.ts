@@ -5,6 +5,7 @@ export type ReceiptLineItem = {
   name: string;
   brand: string | null;
   quantity: number | null;
+  price: number | null;
   confidence: ExtractionConfidence;
 };
 

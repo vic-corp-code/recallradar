@@ -2,14 +2,13 @@
 
 import * as React from "react";
 import {
-  AlertTriangle,
   CalendarDays,
-  CheckCircle2,
   Plus,
   Store,
   Trash2,
 } from "lucide-react";
 
+import { AnalysisResult } from "@/components/receipt/analysis-result";
 import { ProcessingIndicator } from "@/components/receipt/processing-indicator";
 import { Button } from "@/components/ui/button";
 import type { RecallMatchingResult } from "@/lib/recalls/matching";
@@ -56,6 +55,7 @@ export function ExtractionReview({
         name: "",
         brand: null,
         quantity: null,
+        price: null,
         confidence: "low",
       },
     ]);
@@ -130,6 +130,10 @@ export function ExtractionReview({
     return <ProcessingIndicator items={lineItems} stage={processingStage} />;
   }
 
+  if (matchResult) {
+    return <AnalysisResult onScanAnother={onBack} result={matchResult} />;
+  }
+
   return (
     <section className="space-y-5 rounded-lg border border-border bg-card p-5 shadow-sm">
       <div>
@@ -144,8 +148,6 @@ export function ExtractionReview({
       </div>
 
       <ConfidenceNotice confidence={extraction.extractionConfidence} />
-
-      {matchResult ? <MatchingSummary result={matchResult} /> : null}
 
       {matchError ? (
         <p className="rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
@@ -229,40 +231,6 @@ function wait(duration: number) {
   return new Promise((resolve) => window.setTimeout(resolve, duration));
 }
 
-function MatchingSummary({ result }: { result: RecallMatchingResult }) {
-  const hasFlaggedItems = result.summary.flagged > 0;
-
-  return (
-    <div
-      className={cn(
-        "rounded-lg border p-3 text-sm leading-6",
-        hasFlaggedItems
-          ? "border-risk/30 bg-risk/10 text-risk"
-          : "border-success/30 bg-success/10 text-success",
-      )}
-    >
-      <div className="flex items-start gap-2 font-medium">
-        {hasFlaggedItems ? (
-          <AlertTriangle aria-hidden="true" className="mt-0.5 size-4" />
-        ) : (
-          <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4" />
-        )}
-        <p>
-          {hasFlaggedItems
-            ? `${result.summary.flagged} product${
-                result.summary.flagged > 1 ? "s" : ""
-              } may need verification.`
-            : "No relevant active recall match found."}
-        </p>
-      </div>
-      <p className="mt-2 text-xs opacity-80">
-        Compared {result.summary.totalItems} receipt items with{" "}
-        {result.recallCount} active RappelConso recalls.
-      </p>
-    </div>
-  );
-}
-
 function LineItemEditor({
   index,
   item,
@@ -307,7 +275,7 @@ function LineItemEditor({
           />
         </label>
 
-        <div className="grid grid-cols-[1fr_96px] gap-3">
+        <div className="grid grid-cols-[1fr_82px_82px] gap-3">
           <label className="grid gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
               Brand
@@ -339,6 +307,27 @@ function LineItemEditor({
               placeholder="1"
               type="number"
               value={item.quantity ?? ""}
+            />
+          </label>
+
+          <label className="grid gap-1.5">
+            <span className="text-xs font-medium text-muted-foreground">
+              Price
+            </span>
+            <input
+              className="min-h-11 rounded-lg border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+              min="0"
+              onChange={(event) =>
+                onUpdate({
+                  price: event.target.value
+                    ? Number.parseFloat(event.target.value)
+                    : null,
+                })
+              }
+              placeholder="0.00"
+              step="0.01"
+              type="number"
+              value={item.price ?? ""}
             />
           </label>
         </div>
