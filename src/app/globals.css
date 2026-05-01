@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbfaf7;
+  --foreground: #1f2933;
+  --card: #ffffff;
+  --card-foreground: #1f2933;
+  --popover: #ffffff;
+  --popover-foreground: #1f2933;
+  --primary: #0f766e;
+  --primary-foreground: #f8fffd;
+  --secondary: #eef3f2;
+  --secondary-foreground: #193633;
+  --muted: #eff1ed;
+  --muted-foreground: #66736f;
+  --accent: #e5f3f0;
+  --accent-foreground: #123c38;
+  --caution: #d97706;
+  --caution-foreground: #fff8ed;
+  --risk: #dc2626;
+  --risk-foreground: #fff7f7;
+  --success: #15803d;
+  --success-foreground: #f2fff7;
+  --border: #d9e0dc;
+  --input: #d9e0dc;
+  --ring: #0f766e;
+  --radius: 0.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-caution: var(--caution);
+  --color-caution-foreground: var(--caution-foreground);
+  --color-risk: var(--risk);
+  --color-risk-foreground: var(--risk-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #101514;
+  --foreground: #eef5f2;
+  --card: #171d1b;
+  --card-foreground: #eef5f2;
+  --popover: #171d1b;
+  --popover-foreground: #eef5f2;
+  --primary: #2dd4bf;
+  --primary-foreground: #052e2b;
+  --secondary: #1f2a27;
+  --secondary-foreground: #dbe7e3;
+  --muted: #202926;
+  --muted-foreground: #9eb0aa;
+  --accent: #163a35;
+  --accent-foreground: #dff8f2;
+  --caution: #f59e0b;
+  --caution-foreground: #2d1d05;
+  --risk: #f87171;
+  --risk-foreground: #320909;
+  --success: #4ade80;
+  --success-foreground: #06240f;
+  --border: #2f3c38;
+  --input: #2f3c38;
+  --ring: #2dd4bf;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
 }
