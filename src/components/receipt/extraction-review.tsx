@@ -5,12 +5,12 @@ import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
-  Loader2,
   Plus,
   Store,
   Trash2,
 } from "lucide-react";
 
+import { ProcessingIndicator } from "@/components/receipt/processing-indicator";
 import { Button } from "@/components/ui/button";
 import type { RecallMatchingResult } from "@/lib/recalls/matching";
 import type {
@@ -19,6 +19,8 @@ import type {
   ReceiptLineItem,
 } from "@/lib/receipts/types";
 import { cn } from "@/lib/utils";
+
+type ProcessingStage = "matching" | "preparing";
 
 type ExtractionReviewProps = {
   extraction: ExtractedReceipt;
@@ -34,7 +36,8 @@ export function ExtractionReview({
     extraction.purchaseDate.value ?? "",
   );
   const [lineItems, setLineItems] = React.useState(extraction.lineItems);
-  const [isMatching, setIsMatching] = React.useState(false);
+  const [processingStage, setProcessingStage] =
+    React.useState<ProcessingStage | null>(null);
   const [matchResult, setMatchResult] =
     React.useState<RecallMatchingResult | null>(null);
   const [matchError, setMatchError] = React.useState<string | null>(null);
@@ -72,28 +75,31 @@ export function ExtractionReview({
       return;
     }
 
-    setIsMatching(true);
+    setProcessingStage("matching");
     setMatchError(null);
     setMatchResult(null);
 
     try {
-      const response = await fetch("/api/recalls/match", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          receipt: {
-            receiptId: extraction.receiptId,
-            store: {
-              name: storeName.trim() || null,
-              location: extraction.store.location,
-            },
-            purchaseDate: purchaseDate || null,
-            lineItems: cleanLineItems,
+      const response = await Promise.all([
+        fetch("/api/recalls/match", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            receipt: {
+              receiptId: extraction.receiptId,
+              store: {
+                name: storeName.trim() || null,
+                location: extraction.store.location,
+              },
+              purchaseDate: purchaseDate || null,
+              lineItems: cleanLineItems,
+            },
+          }),
         }),
-      });
+        wait(900),
+      ]).then(([matchResponse]) => matchResponse);
 
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as {
@@ -106,6 +112,8 @@ export function ExtractionReview({
       }
 
       const nextMatchResult = (await response.json()) as RecallMatchingResult;
+      setProcessingStage("preparing");
+      await wait(500);
       setMatchResult(nextMatchResult);
     } catch (error) {
       setMatchError(
@@ -114,8 +122,12 @@ export function ExtractionReview({
           : "Recall matching failed. Please try again.",
       );
     } finally {
-      setIsMatching(false);
+      setProcessingStage(null);
     }
+  }
+
+  if (processingStage) {
+    return <ProcessingIndicator items={lineItems} stage={processingStage} />;
   }
 
   return (
@@ -199,14 +211,11 @@ export function ExtractionReview({
       <div className="grid gap-3 pt-2">
         <Button
           className="h-12"
-          disabled={isMatching}
+          disabled={Boolean(processingStage)}
           onClick={continueToRecallMatching}
           type="button"
         >
-          {isMatching ? (
-            <Loader2 aria-hidden="true" className="animate-spin" />
-          ) : null}
-          {isMatching ? "Matching recalls..." : "Continue to recall matching"}
+          Continue to recall matching
         </Button>
         <Button className="h-12" onClick={onBack} type="button" variant="ghost">
           Back to receipt upload
@@ -214,6 +223,10 @@ export function ExtractionReview({
       </div>
     </section>
   );
+}
+
+function wait(duration: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, duration));
 }
 
 function MatchingSummary({ result }: { result: RecallMatchingResult }) {
