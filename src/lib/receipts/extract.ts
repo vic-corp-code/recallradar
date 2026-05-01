@@ -113,15 +113,15 @@ function inferLineItems(
   confidence: ExtractionConfidence,
 ): ReceiptLineItem[] {
   const items = [
-    createLineItem("Creme de pistache", "Gourmet Celebi", 1, confidence),
-    createLineItem("Jambon blanc", null, 1, "low"),
-    createLineItem("Yaourt nature", null, 2, "low"),
+    createLineItem("Creme de pistache", "Gourmet Celebi", 1, 4.99, confidence),
+    createLineItem("Jambon blanc", null, 1, 2.35, "low"),
+    createLineItem("Yaourt nature", null, 2, 1.8, "low"),
   ];
 
   if (fileName.includes("safe") || fileName.includes("clear")) {
     return [
-      createLineItem("Pates coquillettes", null, 1, "medium"),
-      createLineItem("Lait demi-ecreme", null, 1, "medium"),
+      createLineItem("Pates coquillettes", null, 1, 1.49, "medium"),
+      createLineItem("Lait demi-ecreme", null, 1, 1.15, "medium"),
     ];
   }
 
@@ -132,6 +132,7 @@ function createLineItem(
   name: string,
   brand: string | null,
   quantity: number | null,
+  price: number | null,
   confidence: ExtractionConfidence,
 ): ReceiptLineItem {
   return {
@@ -139,6 +140,7 @@ function createLineItem(
     name,
     brand,
     quantity,
+    price,
     confidence,
   };
 }
