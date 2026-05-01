@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ExtractionReview } from "@/components/receipt/extraction-review";
+import type { ExtractedReceipt } from "@/lib/receipts/types";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED_FILE_TYPES = "image/*,.pdf";
@@ -31,6 +33,10 @@ export function UploadPanel() {
   const [selectedReceipt, setSelectedReceipt] =
     React.useState<SelectedReceipt | null>(null);
   const [isPreparing, setIsPreparing] = React.useState(false);
+  const [isExtracting, setIsExtracting] = React.useState(false);
+  const [extraction, setExtraction] = React.useState<ExtractedReceipt | null>(
+    null,
+  );
   const [isDragging, setIsDragging] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -50,6 +56,7 @@ export function UploadPanel() {
     }
 
     setError(null);
+    setExtraction(null);
 
     if (!isSupportedFile(file)) {
       setError("Use a receipt photo, screenshot, or PDF.");
@@ -89,6 +96,7 @@ export function UploadPanel() {
       return null;
     });
     setError(null);
+    setExtraction(null);
 
     if (cameraInputRef.current) {
       cameraInputRef.current.value = "";
@@ -97,6 +105,55 @@ export function UploadPanel() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  }
+
+  async function extractSelectedReceipt() {
+    if (!selectedReceipt) {
+      return;
+    }
+
+    setError(null);
+    setIsExtracting(true);
+
+    const formData = new FormData();
+    formData.set("file", selectedReceipt.file);
+
+    try {
+      const response = await fetch("/api/receipts/extract", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+
+        throw new Error(
+          body?.error ?? "Receipt extraction failed. Please try again.",
+        );
+      }
+
+      const nextExtraction = (await response.json()) as ExtractedReceipt;
+      setExtraction(nextExtraction);
+    } catch (extractError) {
+      setError(
+        extractError instanceof Error
+          ? extractError.message
+          : "Receipt extraction failed. Please try again.",
+      );
+    } finally {
+      setIsExtracting(false);
+    }
+  }
+
+  if (extraction) {
+    return (
+      <ExtractionReview
+        extraction={extraction}
+        onBack={() => setExtraction(null)}
+      />
+    );
   }
 
   return (
@@ -134,6 +191,8 @@ export function UploadPanel() {
       >
         {selectedReceipt ? (
           <SelectedFileCard
+            isExtracting={isExtracting}
+            onContinue={extractSelectedReceipt}
             receipt={selectedReceipt}
             onClear={clearSelection}
           />
@@ -225,9 +284,13 @@ function EmptyUploadState({ isPreparing }: { isPreparing: boolean }) {
 }
 
 function SelectedFileCard({
+  isExtracting,
+  onContinue,
   receipt,
   onClear,
 }: {
+  isExtracting: boolean;
+  onContinue: () => void;
   receipt: SelectedReceipt;
   onClear: () => void;
 }) {
@@ -266,9 +329,18 @@ function SelectedFileCard({
         </Button>
       </div>
 
-      <Button className="h-12 w-full" type="button">
-        <RotateCcw aria-hidden="true" />
-        Continue to extraction
+      <Button
+        className="h-12 w-full"
+        disabled={isExtracting}
+        onClick={onContinue}
+        type="button"
+      >
+        {isExtracting ? (
+          <Loader2 aria-hidden="true" className="animate-spin" />
+        ) : (
+          <RotateCcw aria-hidden="true" />
+        )}
+        {isExtracting ? "Extracting receipt..." : "Continue to extraction"}
       </Button>
     </div>
   );
