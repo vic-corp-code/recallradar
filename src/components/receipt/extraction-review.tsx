@@ -17,6 +17,7 @@ import type {
   ExtractionConfidence,
   ReceiptLineItem,
 } from "@/lib/receipts/types";
+import { saveReceiptCheck } from "@/lib/receipts/history";
 import { cn } from "@/lib/utils";
 
 type ProcessingStage = "matching" | "preparing";
@@ -114,6 +115,13 @@ export function ExtractionReview({
       const nextMatchResult = (await response.json()) as RecallMatchingResult;
       setProcessingStage("preparing");
       await wait(500);
+      saveReceiptCheck({
+        id: nextMatchResult.receiptId,
+        storeName: storeName.trim() || extraction.store.name,
+        purchaseDate: purchaseDate || extraction.purchaseDate.value,
+        createdAt: nextMatchResult.matchedAt,
+        result: nextMatchResult,
+      });
       setMatchResult(nextMatchResult);
     } catch (error) {
       setMatchError(
