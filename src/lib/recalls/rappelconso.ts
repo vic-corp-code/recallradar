@@ -6,7 +6,7 @@ const API_BASE =
 const DATASET_API_URL = `${API_BASE}/${DATASET_ID}/records`;
 const DATASET_PAGE_URL =
   "https://data.economie.gouv.fr/explore/dataset/rappelconso-v2-gtin-espaces/";
-const MAX_LIMIT = 500;
+const MAX_LIMIT = 100;
 
 type RappelConsoApiResponse = {
   total_count: number;
