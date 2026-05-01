@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-guard";
+import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -61,7 +62,9 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <AuthProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ConvexClientProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </ConvexClientProvider>
         </AuthProvider>
       </body>
     </html>
