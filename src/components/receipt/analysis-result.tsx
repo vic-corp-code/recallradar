@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -8,6 +9,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 
+import { RecallDetail } from "@/components/receipt/recall-detail";
 import { Button } from "@/components/ui/button";
 import type {
   MatchedReceiptItem,
@@ -26,6 +28,8 @@ export function AnalysisResult({
   result,
   onScanAnother,
 }: AnalysisResultProps) {
+  const [selectedItem, setSelectedItem] =
+    React.useState<MatchedReceiptItem | null>(null);
   const flaggedItems = result.items.filter((item) => item.confidence !== "none");
   const safeItems = result.items.filter((item) => item.confidence === "none");
   const hasWarnings = flaggedItems.length > 0;
@@ -33,6 +37,15 @@ export function AnalysisResult({
     (total, item) => total + (item.item.price ?? 0),
     0,
   );
+
+  if (selectedItem) {
+    return (
+      <RecallDetail
+        matchedItem={selectedItem}
+        onBack={() => setSelectedItem(null)}
+      />
+    );
+  }
 
   return (
     <section className="space-y-5">
@@ -81,7 +94,9 @@ export function AnalysisResult({
         <SummaryStat label="Total" value={formatPrice(totalPrice)} />
       </div>
 
-      {hasWarnings ? <FlaggedItems items={flaggedItems} /> : null}
+      {hasWarnings ? (
+        <FlaggedItems items={flaggedItems} onSelect={setSelectedItem} />
+      ) : null}
 
       <SafeProducts items={hasWarnings ? safeItems : result.items} />
 
@@ -138,7 +153,13 @@ function SummaryStat({
   );
 }
 
-function FlaggedItems({ items }: { items: MatchedReceiptItem[] }) {
+function FlaggedItems({
+  items,
+  onSelect,
+}: {
+  items: MatchedReceiptItem[];
+  onSelect: (item: MatchedReceiptItem) => void;
+}) {
   return (
     <section>
       <p className="mb-3 font-mono text-xs uppercase text-risk">À vérifier</p>
@@ -150,6 +171,7 @@ function FlaggedItems({ items }: { items: MatchedReceiptItem[] }) {
             <button
               className="flex w-full items-center gap-3 rounded-lg border border-risk/20 bg-risk/10 p-3 text-left"
               key={item.item.id}
+              onClick={() => onSelect(item)}
               type="button"
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-risk/20 bg-card text-risk">
