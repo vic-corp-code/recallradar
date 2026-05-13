@@ -51,7 +51,8 @@ export function AnalysisResult({
 
   return (
     <section className="space-y-5">
-      <div className="rounded-lg border border-border bg-card p-5 text-center shadow-sm">
+      <div className="rounded-[1.5rem] border border-border bg-card p-5 text-center shadow-sm sm:p-6">
+        <p className="mb-4 text-sm font-semibold text-primary">Step 3 of 3</p>
         <div
           className={cn(
             "mx-auto grid size-20 place-items-center rounded-full border-2",
@@ -97,7 +98,7 @@ export function AnalysisResult({
       </div>
 
       {saveWarning ? (
-        <p className="rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
+        <p className="rounded-2xl bg-risk/10 px-3 py-2 text-sm font-medium text-risk" role="alert">
           {saveWarning}
         </p>
       ) : null}
@@ -109,13 +110,13 @@ export function AnalysisResult({
       <SafeProducts items={hasWarnings ? safeItems : result.items} />
 
       <div className="grid gap-3 pt-1">
-        <Button className="h-12" onClick={onScanAnother} type="button">
+        <Button className="h-12 rounded-2xl" onClick={onScanAnother} type="button">
           <RotateCcw aria-hidden="true" />
           Scanner un autre ticket
         </Button>
 
         {!hasWarnings ? (
-          <Button asChild className="h-12" variant="outline">
+          <Button asChild className="h-12 rounded-2xl" variant="outline">
             <Link href="/">Retour à l&apos;accueil</Link>
           </Button>
         ) : null}
@@ -136,7 +137,7 @@ function SummaryStat({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-card px-2 py-3 text-center shadow-sm",
+        "rounded-2xl border border-border bg-card px-2 py-3 text-center shadow-sm",
         tone === "risk" && "border-risk/30 bg-risk/10",
       )}
     >
@@ -177,12 +178,12 @@ function FlaggedItems({
 
           return (
             <button
-              className="flex w-full items-center gap-3 rounded-lg border border-risk/20 bg-risk/10 p-3 text-left"
+              className="flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-2xl border border-risk/20 bg-risk/10 p-3 text-left transition-colors duration-200 hover:bg-risk/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               key={item.item.id}
               onClick={() => onSelect(item)}
               type="button"
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-risk/20 bg-card text-risk">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-risk/20 bg-card text-risk">
                 <AlertTriangle aria-hidden="true" className="size-5" />
               </span>
               <span className="min-w-0 flex-1">
@@ -218,7 +219,7 @@ function SafeProducts({ items }: { items: MatchedReceiptItem[] }) {
       <p className="mb-3 font-mono text-xs uppercase text-muted-foreground">
         Produits vérifiés
       </p>
-      <div className="rounded-lg border border-border bg-card px-4 py-1 shadow-sm">
+      <div className="rounded-2xl border border-border bg-card px-4 py-1 shadow-sm">
         {visibleItems.map((item) => (
           <div
             className="flex min-h-11 items-center gap-3 border-t border-border first:border-t-0"

@@ -1,13 +1,11 @@
 import { NoObjectGeneratedError } from "ai";
 import { NextResponse } from "next/server";
 
-import {
-  extractReceipt,
-  validateReceiptFile,
-} from "@/lib/receipts/extract";
-import type { ReceiptExtractionError, ReceiptExtractionFailureOutcome } from "@/lib/receipts/types";
-
-export const runtime = "nodejs";
+import { extractReceipt, validateReceiptFile } from "@/lib/receipts/extract";
+import type {
+  ReceiptExtractionError,
+  ReceiptExtractionFailureOutcome,
+} from "@/lib/receipts/types";
 
 export async function POST(request: Request) {
   let formData: FormData;
@@ -25,7 +23,11 @@ export async function POST(request: Request) {
   const file = formData.get("file");
 
   if (!(file instanceof File)) {
-    return extractionError("Receipt file is required.", 400, "failure_input_invalid");
+    return extractionError(
+      "Receipt file is required.",
+      400,
+      "failure_input_invalid",
+    );
   }
 
   const validationError = validateReceiptFile(file);
@@ -39,8 +41,11 @@ export async function POST(request: Request) {
   } catch (error) {
     const outcome = classifyError(error);
     const status =
-      outcome === "failure_input_invalid" ? 400 :
-      outcome === "failure_parsing" ? 422 : 502;
+      outcome === "failure_input_invalid"
+        ? 400
+        : outcome === "failure_parsing"
+          ? 422
+          : 502;
 
     console.error("Receipt extraction failed", {
       outcome,

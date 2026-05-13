@@ -23,8 +23,9 @@ export function ProcessingIndicator({
   const extraCount = Math.max(0, items.length - visibleItemLimit);
 
   return (
-    <section className="min-h-[calc(100svh-9rem)] rounded-lg border border-border bg-card px-5 py-8 shadow-sm">
+    <section className="min-h-[calc(100svh-9rem)] rounded-[1.5rem] border border-border bg-card px-5 py-8 shadow-sm sm:px-6">
       <div className="text-center">
+        <p className="mb-3 text-sm font-semibold text-primary">Step 3 of 3</p>
         <h2 className="text-2xl font-semibold tracking-tight">
           Analyse en cours
         </h2>
@@ -35,7 +36,7 @@ export function ProcessingIndicator({
 
       <div
         aria-label="Analyse en cours"
-        className="mx-auto mt-12 size-12 animate-spin rounded-full border-[3px] border-border border-t-primary"
+        className="mx-auto mt-12 size-12 animate-spin rounded-full border-[3px] border-border border-t-primary motion-reduce:animate-none"
         role="status"
       />
 
@@ -66,7 +67,7 @@ export function ProcessingIndicator({
         <div className="space-y-2">
           {visibleItems.map((item, index) => (
             <div
-              className="animate-receipt-product-fade flex min-h-12 items-center gap-3 rounded-lg border border-border bg-background px-4 opacity-0"
+              className="animate-receipt-product-fade flex min-h-12 items-center gap-3 rounded-2xl border border-border bg-background px-4 opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"
               key={item.id}
               style={{ animationDelay: `${0.18 + index * 0.12}s` }}
             >

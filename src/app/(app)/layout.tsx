@@ -9,7 +9,7 @@ export default function AppLayout({
   return (
     <div className="min-h-svh bg-background text-foreground">
       <AppHeader />
-      <main className="mx-auto w-full max-w-lg px-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-5">
+      <main className="mx-auto w-full max-w-5xl px-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-5 sm:px-6 lg:px-8">
         {children}
       </main>
       <BottomNav />

@@ -16,13 +16,13 @@ import { hasClerkConfig } from "@/lib/clerk-config";
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/90 px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-3">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
         <Link href="/check" className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
             RecallRadar
           </p>
           <h1 className="truncate text-lg font-semibold tracking-tight">
-            Check receipts
+            Check your receipt
           </h1>
         </Link>
 

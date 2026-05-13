@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  Camera,
   CheckCircle2,
   FileText,
   FileUp,
@@ -101,6 +102,13 @@ export function UploadPanel() {
     setExtraction(null);
     if (validationReason) {
       setError(validationReason);
+      setSelectedReceipt((current) => {
+        if (current?.previewUrl) {
+          URL.revokeObjectURL(current.previewUrl);
+        }
+
+        return null;
+      });
       return;
     }
 
@@ -181,20 +189,20 @@ export function UploadPanel() {
   }
 
   return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+    <section className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm sm:p-6">
       <div>
-        <p className="text-sm font-medium text-primary">Main flow</p>
+        <p className="text-sm font-semibold text-primary">Step 1 of 3</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight">
           Scan or upload a receipt
         </h2>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          Use a paper receipt photo, a screenshot, or a PDF from a digital
-          receipt.
+          Use a paper receipt photo or screenshot for best results. PDFs can be
+          selected, but image receipts are more reliable in the current MVP.
         </p>
       </div>
 
       {selectedReceipt ? (
-        <div className="mt-6 rounded-lg border border-dashed border-border bg-background p-4">
+        <div className="mt-6 rounded-[1.25rem] border border-dashed border-border bg-background p-4">
           <SelectedFileCard
             isExtracting={isExtracting}
             onContinue={extractSelectedReceipt}
@@ -205,13 +213,13 @@ export function UploadPanel() {
       ) : null}
 
       {error ? (
-        <p className="mt-3 rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
+        <p className="mt-3 rounded-2xl bg-risk/10 px-3 py-2 text-sm font-medium text-risk" role="alert">
           {error}
         </p>
       ) : null}
 
       {selectionState && !selectedReceipt ? (
-        <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+        <p className="mt-3 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
           {selectionState.status === "accepted"
             ? `Selected ${selectionState.name} (${formatFileSize(selectionState.size)}).`
             : `Selected ${selectionState.name || "unknown file"} (${formatFileSize(selectionState.size)} · ${selectionState.type}).`}
@@ -221,7 +229,7 @@ export function UploadPanel() {
       {!selectedReceipt ? (
         <div
           className={cn(
-            "mt-6 grid gap-3 rounded-lg border border-dashed border-border bg-background p-4 transition-colors",
+            "mt-6 grid gap-4 rounded-[1.25rem] border border-dashed border-border bg-background p-4 transition-colors duration-200 sm:p-5",
             isDragging && "border-primary bg-accent",
           )}
           onDragEnter={(event) => {
@@ -248,22 +256,34 @@ export function UploadPanel() {
             ref={fileInputRef}
             type="file"
           />
+          <div className="flex items-start gap-3">
+            <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+              <Camera aria-hidden="true" className="size-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Drop a receipt here</h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                A clear, flat photo with product names visible gives the best
+                matching results.
+              </p>
+            </div>
+          </div>
           <Button
-            className="h-14 justify-start text-base"
+            className="h-14 justify-start rounded-2xl text-base"
             onClick={openFilePicker}
             type="button"
             variant="outline"
           >
             <FileUp aria-hidden="true" />
-            Use existing image or PDF
+            Choose receipt image or PDF
           </Button>
         </div>
       ) : null}
 
-      <div className="mt-5 grid gap-2 text-sm text-muted-foreground">
+      <div className="mt-5 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
         <div className="flex items-center gap-2">
           <CheckCircle2 aria-hidden="true" className="size-4 text-success" />
-          <span>Photo, screenshot, or PDF</span>
+          <span>Photo or screenshot recommended</span>
         </div>
         <div className="flex items-center gap-2">
           <Upload aria-hidden="true" className="size-4 text-primary" />
@@ -324,12 +344,12 @@ function SelectedFileCard({
 }) {
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="overflow-hidden rounded-[1.25rem] border border-border bg-card">
         {receipt.previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt="Selected receipt preview"
-            className="max-h-72 w-full object-cover"
+            className="max-h-80 w-full object-cover"
             src={receipt.previewUrl}
           />
         ) : (
@@ -358,7 +378,7 @@ function SelectedFileCard({
       </div>
 
       <Button
-        className="h-12 w-full"
+        className="h-12 w-full rounded-2xl"
         disabled={isExtracting}
         onClick={onContinue}
         type="button"
@@ -368,7 +388,7 @@ function SelectedFileCard({
         ) : (
           <RotateCcw aria-hidden="true" />
         )}
-        {isExtracting ? "Extracting receipt..." : "Continue to extraction"}
+        {isExtracting ? "Reading receipt..." : "Review extracted products"}
       </Button>
     </div>
   );

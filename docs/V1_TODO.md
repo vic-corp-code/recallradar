@@ -6,6 +6,10 @@ Ship the smallest credible RecallRadar loop:
 
 Receipt in -> extraction -> review/edit -> recall comparison -> suspicious item -> verification guidance -> saved status/history.
 
+> Cleanup gate: before adding more V1 features, complete the foundational blocks in
+> [`CLEAN_BASE_ROADMAP.md`](./CLEAN_BASE_ROADMAP.md). The current MVP loop works,
+> but extraction, matching, auth, and persistence need cleaner ownership first.
+
 ## P0 - Core Loop
 
 - [x] Persist completed receipt checks.

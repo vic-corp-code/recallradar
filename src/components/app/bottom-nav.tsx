@@ -27,9 +27,10 @@ export function BottomNav() {
             <Link
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex min-h-11 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground transition-colors",
+                "flex min-h-11 flex-col items-center justify-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground transition-colors duration-200",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isActive && "bg-accent text-accent-foreground",
+                "hover:bg-accent hover:text-accent-foreground",
+                isActive && "bg-primary text-primary-foreground shadow-sm",
               )}
               href={href}
               key={href}

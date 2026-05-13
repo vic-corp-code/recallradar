@@ -189,9 +189,9 @@ export function ExtractionReview({
   }
 
   return (
-    <section className="space-y-5 rounded-lg border border-border bg-card p-5 shadow-sm">
+    <section className="space-y-5 rounded-[1.5rem] border border-border bg-card p-5 shadow-sm sm:p-6">
       <div>
-        <p className="text-sm font-medium text-primary">Extraction review</p>
+        <p className="text-sm font-semibold text-primary">Step 2 of 3</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight">
           Check what we found
         </h2>
@@ -205,31 +205,41 @@ export function ExtractionReview({
       <ExtractionDiagnostics extraction={extraction} />
 
       {matchError ? (
-        <p className="rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
+        <p className="rounded-2xl bg-risk/10 px-3 py-2 text-sm font-medium text-risk" role="alert">
           {matchError}
         </p>
       ) : null}
 
       <div className="grid gap-4">
         <div className="grid gap-2">
-          <span className="flex items-center gap-2 text-sm font-medium">
+          <div className="flex items-center gap-2 text-sm font-medium">
             <Store aria-hidden="true" className="size-4 text-muted-foreground" />
             Store
             <ConfidenceBadge confidence={extraction.store.confidence} />
-          </span>
-          <div className="grid grid-cols-[1fr_1fr] gap-3">
-            <input
-              className="min-h-11 rounded-lg border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
-              onChange={(event) => setStoreName(event.target.value)}
-              placeholder="Store name"
-              value={storeName}
-            />
-            <input
-              className="min-h-11 rounded-lg border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
-              onChange={(event) => setStoreLocation(event.target.value)}
-              placeholder="City or address"
-              value={storeLocation}
-            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">
+                Store name
+              </span>
+              <input
+                className="min-h-11 rounded-xl border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+                onChange={(event) => setStoreName(event.target.value)}
+                placeholder="Carrefour, Intermarche..."
+                value={storeName}
+              />
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">
+                City or address
+              </span>
+              <input
+                className="min-h-11 rounded-xl border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+                onChange={(event) => setStoreLocation(event.target.value)}
+                placeholder="Lyon, Paris..."
+                value={storeLocation}
+              />
+            </label>
           </div>
         </div>
 
@@ -243,7 +253,7 @@ export function ExtractionReview({
             <ConfidenceBadge confidence={extraction.purchaseDate.confidence} />
           </span>
           <input
-            className="min-h-11 rounded-lg border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="min-h-11 rounded-xl border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
             onChange={(event) => setPurchaseDate(event.target.value)}
             type="date"
             value={purchaseDate}
@@ -259,7 +269,7 @@ export function ExtractionReview({
               ({lineItems.length} detected)
             </span>
           </h3>
-          <Button onClick={addLineItem} size="sm" type="button" variant="outline">
+          <Button className="rounded-xl" onClick={addLineItem} size="sm" type="button" variant="outline">
             <Plus aria-hidden="true" />
             Add
           </Button>
@@ -280,14 +290,14 @@ export function ExtractionReview({
 
       <div className="grid gap-3 pt-2">
         <Button
-          className="h-12"
+          className="h-12 rounded-2xl"
           disabled={Boolean(processingStage)}
           onClick={continueToRecallMatching}
           type="button"
         >
-          Continue to recall matching
+          Match against active recalls
         </Button>
-        <Button className="h-12" onClick={onBack} type="button" variant="ghost">
+        <Button className="h-12 rounded-2xl" onClick={onBack} type="button" variant="ghost">
           Back to receipt upload
         </Button>
       </div>
@@ -297,7 +307,7 @@ export function ExtractionReview({
 
 function ExtractionDiagnostics({ extraction }: { extraction: ExtractedReceipt }) {
   return (
-    <div className="rounded-lg border border-border bg-background p-3">
+    <div className="rounded-2xl border border-border bg-background p-3">
       <p className="text-xs font-medium uppercase text-muted-foreground">
         Extraction diagnostics
       </p>
@@ -339,7 +349,7 @@ function LineItemEditor({
   onUpdate: (changes: Partial<ReceiptLineItem>) => void;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-background p-3">
+    <div className="rounded-2xl border border-border bg-background p-3">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="text-sm font-medium text-muted-foreground">
           Item {index + 1}
@@ -364,20 +374,20 @@ function LineItemEditor({
             Product name
           </span>
           <input
-            className="min-h-11 rounded-lg border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            className="min-h-11 rounded-xl border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
             onChange={(event) => onUpdate({ name: event.target.value })}
             placeholder="Product name"
             value={item.name}
           />
         </label>
 
-        <div className="grid grid-cols-[1fr_82px_82px] gap-3">
+        <div className="grid gap-3 sm:grid-cols-[1fr_82px_82px]">
           <label className="grid gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
               Brand
             </span>
             <input
-              className="min-h-11 rounded-lg border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="min-h-11 rounded-xl border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
               onChange={(event) =>
                 onUpdate({ brand: event.target.value || null })
               }
@@ -391,7 +401,7 @@ function LineItemEditor({
               Qty
             </span>
             <input
-              className="min-h-11 rounded-lg border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="min-h-11 rounded-xl border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
               min="0"
               onChange={(event) =>
                 onUpdate({
@@ -411,7 +421,7 @@ function LineItemEditor({
               Price
             </span>
             <input
-              className="min-h-11 rounded-lg border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="min-h-11 rounded-xl border border-input bg-card px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
               min="0"
               onChange={(event) =>
                 onUpdate({
@@ -442,7 +452,7 @@ function ConfidenceNotice({
   }
 
   return (
-    <div className="rounded-lg border border-caution/30 bg-caution/10 p-3 text-sm leading-6 text-caution">
+    <div className="rounded-2xl border border-caution/30 bg-caution/10 p-3 text-sm leading-6 text-caution">
       Some fields may need review before recall matching. Receipt descriptions
       can be abbreviated, especially on grocery receipts.
     </div>
