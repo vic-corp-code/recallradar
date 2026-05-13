@@ -18,19 +18,26 @@ Receipt in -> extraction -> review/edit -> recall comparison -> suspicious item 
 
 ## P1 - Product Trust
 
-- [ ] Replace mock receipt extraction with a real extraction provider.
-- [ ] Show recall data freshness in results and detail views.
+- [x] Replace mock receipt extraction with a real extraction provider.
 - [ ] Tighten uncertainty copy across result, detail, and history screens.
 - [ ] Add empty, loading, and error states for persisted history.
+- [ ] Show recall data freshness in results and detail views.
 
-## P2 - V1 Polish
+## P2 - Workflow UX & Design Refinement
+
+- [ ] Refine extraction review flow for clarity and speed.
+- [ ] Improve recall match result presentation and actions.
+- [ ] Polish history list and detail screens.
+- [ ] Add barcode scan entry point for flagged products.
+- [ ] Add product photo verification entry point for flagged products.
+- [ ] Verify installability on Android and iOS PWA surfaces.
+
+## P3 - V1 Polish
 
 - [ ] Enforce signed-in app flow once Clerk keys are configured.
 - [ ] Add store preference classification after receipt extraction.
 - [ ] Add history filtering by status.
-- [ ] Add barcode scan entry point for flagged products.
-- [ ] Add product photo verification entry point for flagged products.
-- [ ] Verify installability on Android and iOS PWA surfaces.
+- [ ] Show recall data freshness in results and detail views.
 
 ## Not Now
 
