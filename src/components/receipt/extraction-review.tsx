@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useMutation } from "convex/react";
 import {
   CalendarDays,
   Plus,
@@ -19,6 +20,7 @@ import type {
 } from "@/lib/receipts/types";
 import { saveReceiptCheck } from "@/lib/receipts/history";
 import { cn } from "@/lib/utils";
+import { api } from "../../../convex/_generated/api";
 
 type ProcessingStage = "matching" | "preparing";
 
@@ -41,6 +43,8 @@ export function ExtractionReview({
   const [matchResult, setMatchResult] =
     React.useState<RecallMatchingResult | null>(null);
   const [matchError, setMatchError] = React.useState<string | null>(null);
+  const [saveWarning, setSaveWarning] = React.useState<string | null>(null);
+  const saveAnalysisResult = useMutation(api.receipts.saveAnalysisResult);
 
   function updateLineItem(id: string, changes: Partial<ReceiptLineItem>) {
     setLineItems((items) =>
@@ -78,6 +82,7 @@ export function ExtractionReview({
 
     setProcessingStage("matching");
     setMatchError(null);
+    setSaveWarning(null);
     setMatchResult(null);
 
     try {
@@ -114,6 +119,32 @@ export function ExtractionReview({
 
       const nextMatchResult = (await response.json()) as RecallMatchingResult;
       setProcessingStage("preparing");
+      await saveAnalysisResult({
+        extraction: {
+          sourceFile: extraction.sourceFile,
+          store: {
+            name: storeName.trim() || null,
+            location: extraction.store.location,
+          },
+          purchaseDate: {
+            value: purchaseDate || null,
+          },
+          extractionConfidence: extraction.extractionConfidence,
+          needsReview: extraction.needsReview,
+        },
+        result: {
+          items: nextMatchResult.items,
+        },
+      }).catch((saveError) => {
+        const message =
+          saveError instanceof Error
+            ? saveError.message
+            : "Unknown save error.";
+
+        setSaveWarning(
+          `Receipt matched, but it could not be saved to history. ${message}`,
+        );
+      });
       await wait(500);
       saveReceiptCheck({
         id: nextMatchResult.receiptId,
@@ -139,7 +170,13 @@ export function ExtractionReview({
   }
 
   if (matchResult) {
-    return <AnalysisResult onScanAnother={onBack} result={matchResult} />;
+    return (
+      <AnalysisResult
+        onScanAnother={onBack}
+        result={matchResult}
+        saveWarning={saveWarning}
+      />
+    );
   }
 
   return (

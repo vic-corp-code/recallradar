@@ -29,7 +29,7 @@ export type ExtractedReceipt = {
   extractionConfidence: ExtractionConfidence;
   needsReview: boolean;
   extractedAt: string;
-  provider: "mock";
+  provider: "mock" | "openai" | "openrouter";
 };
 
 export type ReceiptExtractionError = {

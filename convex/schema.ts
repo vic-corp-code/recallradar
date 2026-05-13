@@ -15,6 +15,12 @@ const verificationStatus = v.union(
   v.literal("ignored"),
 );
 
+const extractionConfidence = v.union(
+  v.literal("high"),
+  v.literal("medium"),
+  v.literal("low"),
+);
+
 export default defineSchema({
   users: defineTable({
     tokenIdentifier: v.string(),
@@ -49,7 +55,7 @@ export default defineSchema({
     storeName: v.optional(v.string()),
     storeLocation: v.optional(v.string()),
     purchaseDate: v.optional(v.string()),
-    extractionConfidence: v.optional(v.number()),
+    extractionConfidence: v.optional(extractionConfidence),
     needsReview: v.boolean(),
     status: v.union(
       v.literal("uploaded"),
@@ -71,8 +77,9 @@ export default defineSchema({
     userTokenIdentifier: v.string(),
     name: v.string(),
     brand: v.optional(v.string()),
-    quantity: v.optional(v.string()),
-    confidence: v.optional(v.number()),
+    quantity: v.optional(v.number()),
+    price: v.optional(v.number()),
+    confidence: v.optional(extractionConfidence),
     createdAt: v.number(),
   })
     .index("by_receiptId", ["receiptId"])

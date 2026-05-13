@@ -37,6 +37,20 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Receipt Extraction Provider
+
+Receipt extraction supports a real provider with fallback:
+
+- `RECEIPT_EXTRACTION_PROVIDER=auto` (default): try OpenRouter first, then OpenAI, then mock fallback.
+- `RECEIPT_EXTRACTION_PROVIDER=openai`: require OpenAI extraction and fail when unavailable.
+- `RECEIPT_EXTRACTION_PROVIDER=openrouter`: require OpenRouter extraction and fail when unavailable.
+- `RECEIPT_EXTRACTION_PROVIDER=mock`: always use mock extraction.
+
+Optional:
+
+- `OPENAI_RECEIPT_MODEL` (default: `gpt-4.1-mini`)
+- `OPENROUTER_RECEIPT_MODEL` (default: `google/gemma-4-31b-it:free`)
+
 ## Development Notes
 
 This repository was bootstrapped with `create-next-app`.

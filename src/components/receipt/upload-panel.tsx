@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   Camera,
   CheckCircle2,
-  FileImage,
   FileText,
   FileUp,
   Loader2,
@@ -18,6 +17,7 @@ import { ExtractionReview } from "@/components/receipt/extraction-review";
 import type { ExtractedReceipt } from "@/lib/receipts/types";
 import { cn } from "@/lib/utils";
 
+const ACCEPTED_CAMERA_TYPES = "image/*";
 const ACCEPTED_FILE_TYPES = "image/*,.pdf";
 const MAX_FILE_SIZE_MB = 20;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -27,18 +27,28 @@ type SelectedReceipt = {
   previewUrl: string | null;
 };
 
+type FileSelectionState = {
+  name: string;
+  size: number;
+  source: "camera" | "file";
+  status: "accepted" | "rejected" | "empty";
+  type: string;
+  validationReason: string | null;
+};
+
 export function UploadPanel() {
   const cameraInputRef = React.useRef<HTMLInputElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [selectedReceipt, setSelectedReceipt] =
     React.useState<SelectedReceipt | null>(null);
-  const [isPreparing, setIsPreparing] = React.useState(false);
   const [isExtracting, setIsExtracting] = React.useState(false);
   const [extraction, setExtraction] = React.useState<ExtractedReceipt | null>(
     null,
   );
   const [isDragging, setIsDragging] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [selectionState, setSelectionState] =
+    React.useState<FileSelectionState | null>(null);
 
   React.useEffect(() => {
     return () => {
@@ -48,43 +58,52 @@ export function UploadPanel() {
     };
   }, [selectedReceipt?.previewUrl]);
 
-  function handleFiles(files: FileList | null) {
+  function handleFiles(
+    files: FileList | null,
+    source: FileSelectionState["source"],
+  ) {
     const file = files?.[0];
 
     if (!file) {
+      setSelectionState({
+        source,
+        status: "empty",
+        name: "",
+        type: "",
+        size: 0,
+        validationReason: "No file was returned by the picker.",
+      });
       return;
     }
+
+    const validationReason = getValidationReason(file);
+
+    setSelectionState({
+      source,
+      status: validationReason ? "rejected" : "accepted",
+      name: file.name || "camera-photo",
+      type: file.type || "unknown",
+      size: file.size,
+      validationReason,
+    });
 
     setError(null);
     setExtraction(null);
-
-    if (!isSupportedFile(file)) {
-      setError("Use a receipt photo, screenshot, or PDF.");
+    if (validationReason) {
+      setError(validationReason);
       return;
     }
 
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      setError(`Keep the file under ${MAX_FILE_SIZE_MB} MB.`);
-      return;
-    }
+    setSelectedReceipt((current) => {
+      if (current?.previewUrl) {
+        URL.revokeObjectURL(current.previewUrl);
+      }
 
-    setIsPreparing(true);
-
-    window.setTimeout(() => {
-      setSelectedReceipt((current) => {
-        if (current?.previewUrl) {
-          URL.revokeObjectURL(current.previewUrl);
-        }
-
-        return {
-          file,
-          previewUrl: file.type.startsWith("image/")
-            ? URL.createObjectURL(file)
-            : null,
-        };
-      });
-      setIsPreparing(false);
-    }, 350);
+      return {
+        file,
+        previewUrl: isImageFile(file) ? URL.createObjectURL(file) : null,
+      };
+    });
   }
 
   function clearSelection() {
@@ -97,6 +116,7 @@ export function UploadPanel() {
     });
     setError(null);
     setExtraction(null);
+    setSelectionState(null);
 
     if (cameraInputRef.current) {
       cameraInputRef.current.value = "";
@@ -169,37 +189,16 @@ export function UploadPanel() {
         </p>
       </div>
 
-      <div
-        className={cn(
-          "mt-6 rounded-lg border border-dashed border-border bg-background p-4 transition-colors",
-          isDragging && "border-primary bg-accent",
-        )}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={(event) => {
-          event.preventDefault();
-          setIsDragging(false);
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          setIsDragging(false);
-          handleFiles(event.dataTransfer.files);
-        }}
-      >
-        {selectedReceipt ? (
+      {selectedReceipt ? (
+        <div className="mt-6 rounded-lg border border-dashed border-border bg-background p-4">
           <SelectedFileCard
             isExtracting={isExtracting}
             onContinue={extractSelectedReceipt}
             receipt={selectedReceipt}
             onClear={clearSelection}
           />
-        ) : (
-          <EmptyUploadState isPreparing={isPreparing} />
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {error ? (
         <p className="mt-3 rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
@@ -207,47 +206,80 @@ export function UploadPanel() {
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-3">
-        <input
-          accept={ACCEPTED_FILE_TYPES}
-          capture="environment"
-          className="sr-only"
-          onChange={(event) => handleFiles(event.target.files)}
-          ref={cameraInputRef}
-          type="file"
-        />
-        <input
-          accept={ACCEPTED_FILE_TYPES}
-          className="sr-only"
-          onChange={(event) => handleFiles(event.target.files)}
-          ref={fileInputRef}
-          type="file"
-        />
+      {selectionState && !selectedReceipt ? (
+        <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          {selectionState.status === "accepted"
+            ? `Selected ${selectionState.name} (${formatFileSize(selectionState.size)}).`
+            : `Selected ${selectionState.name || "unknown file"} (${formatFileSize(selectionState.size)} · ${selectionState.type}).`}
+        </p>
+      ) : null}
 
-        <Button
-          className="h-14 justify-start text-base"
-          disabled={isPreparing}
-          onClick={() => cameraInputRef.current?.click()}
-          type="button"
-        >
-          {isPreparing ? (
-            <Loader2 aria-hidden="true" className="animate-spin" />
-          ) : (
-            <Camera aria-hidden="true" />
+      {!selectedReceipt ? (
+        <div
+          className={cn(
+            "mt-6 grid gap-3 rounded-lg border border-dashed border-border bg-background p-4 transition-colors",
+            isDragging && "border-primary bg-accent",
           )}
-          Take a receipt photo
-        </Button>
-        <Button
-          className="h-14 justify-start text-base"
-          disabled={isPreparing}
-          onClick={() => fileInputRef.current?.click()}
-          type="button"
-          variant="outline"
+          onDragEnter={(event) => {
+            event.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={(event) => {
+            event.preventDefault();
+            setIsDragging(false);
+          }}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            setIsDragging(false);
+            handleFiles(event.dataTransfer.files, "file");
+          }}
         >
-          <FileUp aria-hidden="true" />
-          Choose image or PDF
-        </Button>
-      </div>
+          <Button asChild className="relative h-14 justify-start overflow-hidden text-base">
+            <label>
+              <input
+                accept={ACCEPTED_CAMERA_TYPES}
+                capture="environment"
+                className="absolute inset-0 cursor-pointer opacity-0"
+                onChange={(event) => {
+                  handleFiles(event.currentTarget.files, "camera");
+                  event.currentTarget.value = "";
+                }}
+                onClick={(event) => {
+                  event.currentTarget.value = "";
+                }}
+                ref={cameraInputRef}
+                type="file"
+              />
+              <Camera aria-hidden="true" />
+              Take photo
+            </label>
+          </Button>
+          <Button
+            asChild
+            className="relative h-14 justify-start overflow-hidden text-base"
+            variant="outline"
+          >
+            <label>
+              <input
+                accept={ACCEPTED_FILE_TYPES}
+                className="absolute inset-0 cursor-pointer opacity-0"
+                onChange={(event) => {
+                  handleFiles(event.currentTarget.files, "file");
+                  event.currentTarget.value = "";
+                }}
+                onClick={(event) => {
+                  event.currentTarget.value = "";
+                }}
+                ref={fileInputRef}
+                type="file"
+              />
+              <FileUp aria-hidden="true" />
+              Use existing image or PDF
+            </label>
+          </Button>
+        </div>
+      ) : null}
 
       <div className="mt-5 grid gap-2 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
@@ -260,26 +292,6 @@ export function UploadPanel() {
         </div>
       </div>
     </section>
-  );
-}
-
-function EmptyUploadState({ isPreparing }: { isPreparing: boolean }) {
-  return (
-    <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-        {isPreparing ? (
-          <Loader2 aria-hidden="true" className="animate-spin" />
-        ) : (
-          <FileImage aria-hidden="true" />
-        )}
-      </div>
-      <h3 className="mt-4 font-semibold">
-        {isPreparing ? "Preparing file..." : "Ready for your receipt"}
-      </h3>
-      <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">
-        Camera opens on mobile. File picker accepts images and PDFs.
-      </p>
-    </div>
   );
 }
 
@@ -347,7 +359,30 @@ function SelectedFileCard({
 }
 
 function isSupportedFile(file: File) {
-  return file.type.startsWith("image/") || file.type === "application/pdf";
+  if (isImageFile(file) || file.type === "application/pdf") {
+    return true;
+  }
+
+  return /\.(heic|heif|jpe?g|pdf|png|webp)$/i.test(file.name);
+}
+
+function getValidationReason(file: File) {
+  if (!isSupportedFile(file)) {
+    return "Use a receipt photo, screenshot, or PDF.";
+  }
+
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return `Keep the file under ${MAX_FILE_SIZE_MB} MB.`;
+  }
+
+  return null;
+}
+
+function isImageFile(file: File) {
+  return (
+    file.type.startsWith("image/") ||
+    /\.(heic|heif|jpe?g|png|webp)$/i.test(file.name)
+  );
 }
 
 function formatFileSize(size: number) {

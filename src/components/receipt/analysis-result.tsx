@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 type AnalysisResultProps = {
   result: RecallMatchingResult;
+  saveWarning?: string | null;
   onScanAnother: () => void;
 };
 
@@ -26,6 +27,7 @@ const visibleSafeItemLimit = 5;
 
 export function AnalysisResult({
   result,
+  saveWarning,
   onScanAnother,
 }: AnalysisResultProps) {
   const [selectedItem, setSelectedItem] =
@@ -82,7 +84,7 @@ export function AnalysisResult({
 
       <div className="grid grid-cols-3 gap-2.5">
         <SummaryStat
-          label="Verifies"
+          label="Vérifiés"
           tone="success"
           value={safeItems.length.toString()}
         />
@@ -93,6 +95,12 @@ export function AnalysisResult({
         />
         <SummaryStat label="Total" value={formatPrice(totalPrice)} />
       </div>
+
+      {saveWarning ? (
+        <p className="rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
+          {saveWarning}
+        </p>
+      ) : null}
 
       {hasWarnings ? (
         <FlaggedItems items={flaggedItems} onSelect={setSelectedItem} />

@@ -1,195 +1,156 @@
 "use client";
 
-import * as React from "react";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { useQuery } from "convex/react";
+import { AlertTriangle, CheckCircle2, Clock3, ReceiptText } from "lucide-react";
 
-import { AnalysisResult } from "@/components/receipt/analysis-result";
-import type { SavedReceiptCheck } from "@/lib/receipts/history";
-import {
-  getReceiptHistoryServerSnapshot,
-  readReceiptChecks,
-  subscribeToReceiptHistory,
-} from "@/lib/receipts/history";
+import { api } from "../../../../convex/_generated/api";
 import { cn } from "@/lib/utils";
 
-const filters = [
-  { value: "all", label: "Tous" },
-  { value: "alerts", label: "Alertes" },
-  { value: "month", label: "Ce mois" },
-] as const;
-
-type HistoryFilter = (typeof filters)[number]["value"];
+const statuses = ["All", "To verify", "Affected", "Verified safe", "Ignored"];
 
 export default function HistoryPage() {
-  const checks = React.useSyncExternalStore(
-    subscribeToReceiptHistory,
-    readReceiptChecks,
-    getReceiptHistoryServerSnapshot,
-  );
-  const [activeFilter, setActiveFilter] = React.useState<HistoryFilter>("all");
-  const [selectedCheck, setSelectedCheck] =
-    React.useState<SavedReceiptCheck | null>(null);
-  const visibleChecks = filterChecks(checks, activeFilter);
-
-  if (selectedCheck) {
-    return (
-      <AnalysisResult
-        onScanAnother={() => setSelectedCheck(null)}
-        result={selectedCheck.result}
-      />
-    );
-  }
+  const history = useQuery(api.receipts.listHistory, { limit: 20 });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <section>
-        <h2 className="text-2xl font-semibold tracking-tight">Historique</h2>
+        <p className="text-sm font-medium text-primary">History</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+          Past receipt checks
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          Imported receipts, flagged items, and saved verification statuses.
+        </p>
       </section>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {filters.map((filter) => {
-          const isActive = activeFilter === filter.value;
-
-          return (
-            <button
-              className={cn(
-                "min-h-9 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors",
-                isActive
-                  ? "border-transparent bg-primary text-primary-foreground"
-                  : "border-border bg-card text-muted-foreground",
-              )}
-              key={filter.value}
-              onClick={() => setActiveFilter(filter.value)}
-              type="button"
-            >
-              {filter.label}
-            </button>
-          );
-        })}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {statuses.map((status, index) => (
+          <button
+            className={cn(
+              "min-h-11 shrink-0 rounded-lg border border-border bg-card px-3 text-sm font-medium text-muted-foreground",
+              index === 0 && "bg-accent text-accent-foreground",
+            )}
+            key={status}
+            type="button"
+          >
+            {status}
+          </button>
+        ))}
       </div>
 
-      {visibleChecks.length > 0 ? (
-        <section className="space-y-3">
-          {visibleChecks.map((check) => (
-            <HistoryItem
-              check={check}
-              key={check.id}
-              onSelect={() => setSelectedCheck(check)}
-            />
-          ))}
-        </section>
-      ) : (
+      {history === undefined ? (
+        <div className="rounded-lg border border-border bg-card p-5 text-sm leading-6 text-muted-foreground shadow-sm">
+          Loading receipt history...
+        </div>
+      ) : history.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-card p-5 text-sm leading-6 text-muted-foreground">
-          Aucun ticket dans cet historique pour le moment.
+          No receipt history yet.
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {history.map((receipt) => (
+            <Link
+              className="block rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-accent/30"
+              href={`/history/${receipt._id}`}
+              key={receipt._id}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={cn(
+                    "mt-0.5 rounded-lg p-2",
+                    receipt.flaggedCount > 0
+                      ? "bg-risk/10 text-risk"
+                      : "bg-success/10 text-success",
+                  )}
+                >
+                  {receipt.flaggedCount > 0 ? (
+                    <AlertTriangle aria-hidden="true" className="size-5" />
+                  ) : (
+                    <CheckCircle2 aria-hidden="true" className="size-5" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate font-semibold">
+                        {receipt.storeName ?? "Unknown store"}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {receipt.purchaseDate ?? "Unknown purchase date"}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                      {formatDate(receipt.createdAt)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <HistoryStat
+                      icon={ReceiptText}
+                      label="Items"
+                      value={receipt.itemCount}
+                    />
+                    <HistoryStat
+                      icon={AlertTriangle}
+                      label="Flagged"
+                      tone={receipt.flaggedCount > 0 ? "risk" : "default"}
+                      value={receipt.flaggedCount}
+                    />
+                    <HistoryStat
+                      icon={Clock3}
+                      label="To verify"
+                      tone={receipt.statuses.toVerify > 0 ? "risk" : "default"}
+                      value={receipt.statuses.toVerify}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-function HistoryItem({
-  check,
-  onSelect,
+function HistoryStat({
+  icon: Icon,
+  label,
+  tone = "default",
+  value,
 }: {
-  check: SavedReceiptCheck;
-  onSelect: () => void;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  label: string;
+  tone?: "default" | "risk";
+  value: number;
 }) {
-  const flaggedCount = check.result.summary.flagged;
-  const isFlagged = flaggedCount > 0;
-
   return (
-    <button
-      className="grid w-full grid-cols-[1fr_auto] items-start gap-3 rounded-lg border border-border bg-card p-4 text-left shadow-sm"
-      onClick={onSelect}
-      type="button"
+    <div
+      className={cn(
+        "rounded-lg border border-border bg-background px-2 py-3",
+        tone === "risk" && "border-risk/20 bg-risk/10",
+      )}
     >
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold">
-          {check.storeName || "Magasin non identifié"}
-        </span>
-        <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span>
-            {check.result.summary.totalItems} produit
-            {check.result.summary.totalItems > 1 ? "s" : ""}
-          </span>
-          <span>·</span>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 font-medium",
-              isFlagged ? "text-risk" : "text-success",
-            )}
-          >
-            {isFlagged ? (
-              <AlertTriangle aria-hidden="true" className="size-3" />
-            ) : (
-              <CheckCircle2 aria-hidden="true" className="size-3" />
-            )}
-            {isFlagged
-              ? `${flaggedCount} à vérifier`
-              : "Aucun rappel"}
-          </span>
-        </span>
-      </span>
-      <span className="pt-0.5 font-mono text-xs text-muted-foreground">
-        {relativeDate(check.createdAt)}
-      </span>
-    </button>
+      <div
+        className={cn(
+          "flex items-center gap-1.5 font-mono text-lg font-semibold tabular-nums",
+          tone === "risk" && "text-risk",
+        )}
+      >
+        <Icon aria-hidden={true} className="size-4" />
+        {value}
+      </div>
+      <div className="mt-1 text-[11px] font-medium text-muted-foreground">
+        {label}
+      </div>
+    </div>
   );
 }
 
-function filterChecks(checks: SavedReceiptCheck[], filter: HistoryFilter) {
-  if (filter === "alerts") {
-    return checks.filter((check) => check.result.summary.flagged > 0);
-  }
-
-  if (filter === "month") {
-    const now = new Date();
-
-    return checks.filter((check) => {
-      const createdAt = new Date(check.createdAt);
-
-      return (
-        createdAt.getMonth() === now.getMonth() &&
-        createdAt.getFullYear() === now.getFullYear()
-      );
-    });
-  }
-
-  return checks;
-}
-
-function relativeDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  const now = new Date();
-  const startToday = startOfDay(now).getTime();
-  const startDate = startOfDay(date).getTime();
-  const daysAgo = Math.round((startToday - startDate) / 86_400_000);
-
-  if (daysAgo === 0) {
-    return "Aujourd'hui";
-  }
-
-  if (daysAgo === 1) {
-    return "Hier";
-  }
-
-  if (daysAgo < 7) {
-    return new Intl.DateTimeFormat("fr-FR", {
-      weekday: "short",
-    }).format(date);
-  }
-
+function formatDate(value: number) {
   return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
+    day: "2-digit",
     month: "short",
-  }).format(date);
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }).format(value);
 }
