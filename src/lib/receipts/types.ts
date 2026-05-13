@@ -1,4 +1,14 @@
 export type ExtractionConfidence = "high" | "medium" | "low";
+export type ReceiptExtractionProvider = "mock" | "openrouter";
+export type ReceiptExtractionMode = "mock" | "real";
+export type ReceiptExtractionSuccessOutcome = "success_real" | "success_fallback";
+export type ReceiptExtractionFailureOutcome =
+  | "failure_input_invalid"
+  | "failure_provider"
+  | "failure_parsing";
+export type ReceiptExtractionOutcome =
+  | ReceiptExtractionSuccessOutcome
+  | ReceiptExtractionFailureOutcome;
 
 export type ReceiptLineItem = {
   id: string;
@@ -29,10 +39,14 @@ export type ExtractedReceipt = {
   extractionConfidence: ExtractionConfidence;
   needsReview: boolean;
   extractedAt: string;
-  provider: "mock" | "openai" | "openrouter";
+  provider: ReceiptExtractionProvider;
+  mode: ReceiptExtractionMode;
+  outcome: ReceiptExtractionSuccessOutcome;
+  fallbackReason: string | null;
 };
 
 export type ReceiptExtractionError = {
   error: string;
+  outcome?: ReceiptExtractionFailureOutcome;
   details?: string;
 };

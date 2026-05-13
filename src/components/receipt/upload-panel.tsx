@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  Camera,
   CheckCircle2,
   FileText,
   FileUp,
@@ -14,10 +13,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { ExtractionReview } from "@/components/receipt/extraction-review";
-import type { ExtractedReceipt } from "@/lib/receipts/types";
+import type {
+  ExtractedReceipt,
+  ReceiptExtractionError,
+} from "@/lib/receipts/types";
 import { cn } from "@/lib/utils";
 
-const ACCEPTED_CAMERA_TYPES = "image/*";
 const ACCEPTED_FILE_TYPES = "image/*,.pdf";
 const MAX_FILE_SIZE_MB = 20;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -30,14 +31,13 @@ type SelectedReceipt = {
 type FileSelectionState = {
   name: string;
   size: number;
-  source: "camera" | "file";
+  source: "file";
   status: "accepted" | "rejected" | "empty";
   type: string;
   validationReason: string | null;
 };
 
 export function UploadPanel() {
-  const cameraInputRef = React.useRef<HTMLInputElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [selectedReceipt, setSelectedReceipt] =
     React.useState<SelectedReceipt | null>(null);
@@ -49,6 +49,13 @@ export function UploadPanel() {
   const [error, setError] = React.useState<string | null>(null);
   const [selectionState, setSelectionState] =
     React.useState<FileSelectionState | null>(null);
+
+  function openFilePicker() {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  }
 
   React.useEffect(() => {
     return () => {
@@ -66,13 +73,16 @@ export function UploadPanel() {
 
     if (!file) {
       setSelectionState({
-        source,
+        source: "file",
         status: "empty",
         name: "",
         type: "",
         size: 0,
         validationReason: "No file was returned by the picker.",
       });
+      setError(
+        "No photo was returned by the camera picker. Please retry or use existing image.",
+      );
       return;
     }
 
@@ -101,7 +111,7 @@ export function UploadPanel() {
 
       return {
         file,
-        previewUrl: isImageFile(file) ? URL.createObjectURL(file) : null,
+        previewUrl: createPreviewUrl(file),
       };
     });
   }
@@ -117,10 +127,6 @@ export function UploadPanel() {
     setError(null);
     setExtraction(null);
     setSelectionState(null);
-
-    if (cameraInputRef.current) {
-      cameraInputRef.current.value = "";
-    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -145,13 +151,11 @@ export function UploadPanel() {
       });
 
       if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
+        const body = (await response.json().catch(() => null)) as
+          | ReceiptExtractionError
+          | null;
 
-        throw new Error(
-          body?.error ?? "Receipt extraction failed. Please try again.",
-        );
+        throw new Error(userFacingExtractionError(body));
       }
 
       const nextExtraction = (await response.json()) as ExtractedReceipt;
@@ -235,48 +239,23 @@ export function UploadPanel() {
             handleFiles(event.dataTransfer.files, "file");
           }}
         >
-          <Button asChild className="relative h-14 justify-start overflow-hidden text-base">
-            <label>
-              <input
-                accept={ACCEPTED_CAMERA_TYPES}
-                capture="environment"
-                className="absolute inset-0 cursor-pointer opacity-0"
-                onChange={(event) => {
-                  handleFiles(event.currentTarget.files, "camera");
-                  event.currentTarget.value = "";
-                }}
-                onClick={(event) => {
-                  event.currentTarget.value = "";
-                }}
-                ref={cameraInputRef}
-                type="file"
-              />
-              <Camera aria-hidden="true" />
-              Take photo
-            </label>
-          </Button>
+          <input
+            accept={ACCEPTED_FILE_TYPES}
+            className="hidden"
+            onChange={(event) => {
+              handleFiles(event.currentTarget.files, "file");
+            }}
+            ref={fileInputRef}
+            type="file"
+          />
           <Button
-            asChild
-            className="relative h-14 justify-start overflow-hidden text-base"
+            className="h-14 justify-start text-base"
+            onClick={openFilePicker}
+            type="button"
             variant="outline"
           >
-            <label>
-              <input
-                accept={ACCEPTED_FILE_TYPES}
-                className="absolute inset-0 cursor-pointer opacity-0"
-                onChange={(event) => {
-                  handleFiles(event.currentTarget.files, "file");
-                  event.currentTarget.value = "";
-                }}
-                onClick={(event) => {
-                  event.currentTarget.value = "";
-                }}
-                ref={fileInputRef}
-                type="file"
-              />
-              <FileUp aria-hidden="true" />
-              Use existing image or PDF
-            </label>
+            <FileUp aria-hidden="true" />
+            Use existing image or PDF
           </Button>
         </div>
       ) : null}
@@ -292,6 +271,43 @@ export function UploadPanel() {
         </div>
       </div>
     </section>
+  );
+}
+
+function userFacingExtractionError(body: ReceiptExtractionError | null) {
+  if (!body) {
+    return "Receipt extraction failed. Please try again.";
+  }
+
+  if (body.outcome === "failure_input_invalid") {
+    return body.error;
+  }
+
+  if (body.outcome === "failure_parsing") {
+    return "The file was uploaded, but receipt fields could not be read. Try a clearer photo or another receipt.";
+  }
+
+  if (body.outcome === "failure_provider") {
+    if (body.details && isProviderRateLimit(body.details)) {
+      return `The extraction provider rate-limited this API key or model. Details: ${body.details}`;
+    }
+
+    return [
+      "Receipt extraction provider is unavailable right now.",
+      body.details ? `Details: ${body.details}` : "Please retry in a moment.",
+    ].join(" ");
+  }
+
+  return body.error;
+}
+
+function isProviderRateLimit(details: string) {
+  const normalizedDetails = details.toLowerCase();
+
+  return (
+    normalizedDetails.includes("429") ||
+    normalizedDetails.includes("too many requests") ||
+    normalizedDetails.includes("rate limit")
   );
 }
 
@@ -383,6 +399,18 @@ function isImageFile(file: File) {
     file.type.startsWith("image/") ||
     /\.(heic|heif|jpe?g|png|webp)$/i.test(file.name)
   );
+}
+
+function createPreviewUrl(file: File) {
+  if (!isImageFile(file)) {
+    return null;
+  }
+
+  try {
+    return URL.createObjectURL(file);
+  } catch {
+    return null;
+  }
 }
 
 function formatFileSize(size: number) {

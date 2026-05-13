@@ -7,6 +7,20 @@ const extractionConfidence = v.union(
   v.literal("medium"),
   v.literal("low"),
 );
+const extractionProvider = v.union(
+  v.literal("mock"),
+  v.literal("openai"),
+  v.literal("openrouter"),
+);
+const extractionMode = v.union(
+  v.literal("mock"),
+  v.literal("real"),
+  v.literal("hybrid"),
+);
+const extractionSuccessOutcome = v.union(
+  v.literal("success_real"),
+  v.literal("success_fallback"),
+);
 
 const matchConfidence = v.union(
   v.literal("none"),
@@ -108,6 +122,10 @@ export const saveAnalysisResult = mutation({
       }),
       extractionConfidence,
       needsReview: v.boolean(),
+      provider: extractionProvider,
+      mode: extractionMode,
+      outcome: extractionSuccessOutcome,
+      fallbackReason: nullableString,
     }),
     result: v.object({
       items: v.array(matchedReceiptItem),
@@ -127,6 +145,10 @@ export const saveAnalysisResult = mutation({
       storeLocation: optionalString(args.extraction.store.location),
       purchaseDate: optionalString(args.extraction.purchaseDate.value),
       extractionConfidence: args.extraction.extractionConfidence,
+      extractionProvider: args.extraction.provider,
+      extractionMode: args.extraction.mode,
+      extractionOutcome: args.extraction.outcome,
+      extractionFallbackReason: optionalString(args.extraction.fallbackReason),
       needsReview: args.extraction.needsReview,
       status: "matched",
       createdAt: now,

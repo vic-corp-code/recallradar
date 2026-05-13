@@ -1,0 +1,11 @@
+{
+  "docsDir": "docs",
+  "mappingFile": "docs/.mapping.json",
+  "envFiles": [".env", ".env.local"],
+  "envVarPrefix": "DOCUMENTATOR_",
+  "categories": {
+    "guides": { "parentPath": "docs/guides" },
+    "reference": { "parentPath": "docs/reference" },
+    "architecture": { "parentPath": "docs/architecture" }
+  }
+}

@@ -16,6 +16,8 @@ import type { RecallMatchingResult } from "@/lib/recalls/matching";
 import type {
   ExtractedReceipt,
   ExtractionConfidence,
+  ReceiptExtractionMode,
+  ReceiptExtractionSuccessOutcome,
   ReceiptLineItem,
 } from "@/lib/receipts/types";
 import { saveReceiptCheck } from "@/lib/receipts/history";
@@ -131,6 +133,10 @@ export function ExtractionReview({
           },
           extractionConfidence: extraction.extractionConfidence,
           needsReview: extraction.needsReview,
+          provider: extraction.provider,
+          mode: extraction.mode,
+          outcome: extraction.outcome,
+          fallbackReason: extraction.fallbackReason,
         },
         result: {
           items: nextMatchResult.items,
@@ -193,6 +199,7 @@ export function ExtractionReview({
       </div>
 
       <ConfidenceNotice confidence={extraction.extractionConfidence} />
+      <ExtractionDiagnostics extraction={extraction} />
 
       {matchError ? (
         <p className="rounded-lg bg-risk/10 px-3 py-2 text-sm font-medium text-risk">
@@ -269,6 +276,34 @@ export function ExtractionReview({
         </Button>
       </div>
     </section>
+  );
+}
+
+function ExtractionDiagnostics({ extraction }: { extraction: ExtractedReceipt }) {
+  return (
+    <div className="rounded-lg border border-border bg-background p-3">
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        Extraction diagnostics
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <DiagnosticBadge label={`Provider: ${providerLabel(extraction.provider)}`} />
+        <DiagnosticBadge label={`Mode: ${modeLabel(extraction.mode)}`} />
+        <DiagnosticBadge label={`Outcome: ${outcomeLabel(extraction.outcome)}`} />
+      </div>
+      {extraction.fallbackReason ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Fallback reason: {extraction.fallbackReason}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function DiagnosticBadge({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-border bg-card px-2 py-0.5 text-xs font-medium text-foreground">
+      {label}
+    </span>
   );
 }
 
@@ -415,4 +450,28 @@ function ConfidenceBadge({
       {confidence}
     </span>
   );
+}
+
+function providerLabel(provider: ExtractedReceipt["provider"]) {
+  if (provider === "openrouter") {
+    return "OpenRouter";
+  }
+
+  return "Mock";
+}
+
+function modeLabel(mode: ReceiptExtractionMode) {
+  if (mode === "real") {
+    return "Real";
+  }
+
+  return "Mock";
+}
+
+function outcomeLabel(outcome: ReceiptExtractionSuccessOutcome) {
+  if (outcome === "success_real") {
+    return "Real extraction";
+  }
+
+  return "Fallback extraction";
 }

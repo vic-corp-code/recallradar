@@ -37,14 +37,16 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+For phone testing over LAN or Tailscale, set `ALLOWED_DEV_ORIGINS` in `.env` with the host(s) you open from your phone, then restart `bun dev`.
+
 ### Receipt Extraction Provider
 
-Receipt extraction supports a real provider with fallback:
+Receipt extraction now uses explicit operating modes:
 
-- `RECEIPT_EXTRACTION_PROVIDER=auto` (default): try OpenRouter first, then OpenAI, then mock fallback.
-- `RECEIPT_EXTRACTION_PROVIDER=openai`: require OpenAI extraction and fail when unavailable.
-- `RECEIPT_EXTRACTION_PROVIDER=openrouter`: require OpenRouter extraction and fail when unavailable.
-- `RECEIPT_EXTRACTION_PROVIDER=mock`: always use mock extraction.
+- `RECEIPT_EXTRACTION_MODE=hybrid` (default): try real providers first, fallback to mock only when no real provider key is configured.
+- `RECEIPT_EXTRACTION_MODE=real`: require a real provider and fail when provider/parsing fails.
+- `RECEIPT_EXTRACTION_MODE=mock`: always return mock extraction.
+- `RECEIPT_EXTRACTION_REAL_PROVIDER=openrouter|openai` (optional): set preferred real provider order.
 
 Optional:
 

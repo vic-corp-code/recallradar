@@ -21,6 +21,26 @@ const extractionConfidence = v.union(
   v.literal("low"),
 );
 
+const extractionProvider = v.union(
+  v.literal("mock"),
+  v.literal("openai"),
+  v.literal("openrouter"),
+);
+
+const extractionMode = v.union(
+  v.literal("mock"),
+  v.literal("real"),
+  v.literal("hybrid"),
+);
+
+const extractionOutcome = v.union(
+  v.literal("success_real"),
+  v.literal("success_fallback"),
+  v.literal("failure_input_invalid"),
+  v.literal("failure_provider"),
+  v.literal("failure_parsing"),
+);
+
 export default defineSchema({
   users: defineTable({
     tokenIdentifier: v.string(),
@@ -56,6 +76,10 @@ export default defineSchema({
     storeLocation: v.optional(v.string()),
     purchaseDate: v.optional(v.string()),
     extractionConfidence: v.optional(extractionConfidence),
+    extractionProvider: v.optional(extractionProvider),
+    extractionMode: v.optional(extractionMode),
+    extractionOutcome: v.optional(extractionOutcome),
+    extractionFallbackReason: v.optional(v.string()),
     needsReview: v.boolean(),
     status: v.union(
       v.literal("uploaded"),

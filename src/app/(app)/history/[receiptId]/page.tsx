@@ -104,6 +104,28 @@ export default function ReceiptHistoryDetailPage() {
           {detail.receipt.purchaseDate ?? "Unknown purchase date"} · Imported{" "}
           {formatDate(detail.receipt.createdAt)}
         </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {detail.receipt.extractionProvider ? (
+            <DiagnosticBadge
+              label={`Provider: ${providerLabel(detail.receipt.extractionProvider)}`}
+            />
+          ) : null}
+          {detail.receipt.extractionMode ? (
+            <DiagnosticBadge
+              label={`Mode: ${modeLabel(detail.receipt.extractionMode)}`}
+            />
+          ) : null}
+          {detail.receipt.extractionOutcome ? (
+            <DiagnosticBadge
+              label={`Outcome: ${outcomeLabel(detail.receipt.extractionOutcome)}`}
+            />
+          ) : null}
+        </div>
+        {detail.receipt.extractionFallbackReason ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Fallback reason: {detail.receipt.extractionFallbackReason}
+          </p>
+        ) : null}
 
         <div className="mt-4 grid grid-cols-3 gap-2">
           <SummaryStat
@@ -338,4 +360,63 @@ function statusTone(value: StatusValue) {
   }
 
   return "bg-accent text-accent-foreground";
+}
+
+function DiagnosticBadge({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-foreground">
+      {label}
+    </span>
+  );
+}
+
+function providerLabel(value: string) {
+  if (value === "openrouter") {
+    return "OpenRouter";
+  }
+
+  if (value === "openai") {
+    return "OpenAI";
+  }
+
+  return "Mock";
+}
+
+function modeLabel(value: string) {
+  if (value === "real") {
+    return "Real";
+  }
+
+  if (value === "hybrid") {
+    return "Hybrid";
+  }
+
+  return "Mock";
+}
+
+function outcomeLabel(
+  value:
+    | "success_real"
+    | "success_fallback"
+    | "failure_input_invalid"
+    | "failure_provider"
+    | "failure_parsing",
+) {
+  if (value === "success_real") {
+    return "Real extraction";
+  }
+
+  if (value === "success_fallback") {
+    return "Fallback extraction";
+  }
+
+  if (value === "failure_input_invalid") {
+    return "Input invalid";
+  }
+
+  if (value === "failure_provider") {
+    return "Provider failure";
+  }
+
+  return "Parsing failure";
 }
