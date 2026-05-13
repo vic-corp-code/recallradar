@@ -36,6 +36,9 @@ export function ExtractionReview({
   onBack,
 }: ExtractionReviewProps) {
   const [storeName, setStoreName] = React.useState(extraction.store.name ?? "");
+  const [storeLocation, setStoreLocation] = React.useState(
+    extraction.store.location ?? "",
+  );
   const [purchaseDate, setPurchaseDate] = React.useState(
     extraction.purchaseDate.value ?? "",
   );
@@ -99,7 +102,7 @@ export function ExtractionReview({
               receiptId: extraction.receiptId,
               store: {
                 name: storeName.trim() || null,
-                location: extraction.store.location,
+                location: storeLocation.trim() || null,
               },
               purchaseDate: purchaseDate || null,
               lineItems: cleanLineItems,
@@ -126,7 +129,7 @@ export function ExtractionReview({
           sourceFile: extraction.sourceFile,
           store: {
             name: storeName.trim() || null,
-            location: extraction.store.location,
+            location: storeLocation.trim() || null,
           },
           purchaseDate: {
             value: purchaseDate || null,
@@ -208,19 +211,27 @@ export function ExtractionReview({
       ) : null}
 
       <div className="grid gap-4">
-        <label className="grid gap-2">
+        <div className="grid gap-2">
           <span className="flex items-center gap-2 text-sm font-medium">
             <Store aria-hidden="true" className="size-4 text-muted-foreground" />
             Store
             <ConfidenceBadge confidence={extraction.store.confidence} />
           </span>
-          <input
-            className="min-h-11 rounded-lg border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
-            onChange={(event) => setStoreName(event.target.value)}
-            placeholder="Store name"
-            value={storeName}
-          />
-        </label>
+          <div className="grid grid-cols-[1fr_1fr] gap-3">
+            <input
+              className="min-h-11 rounded-lg border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+              onChange={(event) => setStoreName(event.target.value)}
+              placeholder="Store name"
+              value={storeName}
+            />
+            <input
+              className="min-h-11 rounded-lg border border-input bg-background px-3 text-base outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+              onChange={(event) => setStoreLocation(event.target.value)}
+              placeholder="City or address"
+              value={storeLocation}
+            />
+          </div>
+        </div>
 
         <label className="grid gap-2">
           <span className="flex items-center gap-2 text-sm font-medium">
@@ -242,7 +253,12 @@ export function ExtractionReview({
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-semibold">Line items</h3>
+          <h3 className="font-semibold">
+            Line items{" "}
+            <span className="font-normal text-muted-foreground">
+              ({lineItems.length} detected)
+            </span>
+          </h3>
           <Button onClick={addLineItem} size="sm" type="button" variant="outline">
             <Plus aria-hidden="true" />
             Add

@@ -1,5 +1,5 @@
 import { generateText, Output } from "ai";
-import { openrouter } from "@openrouter/ai-sdk-provider";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { z } from "zod";
 
 import type {
@@ -7,6 +7,10 @@ import type {
   ExtractionConfidence,
   ReceiptLineItem,
 } from "@/lib/receipts/types";
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 const MAX_FILE_SIZE_MB = 20;
 export const MAX_RECEIPT_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -85,11 +89,9 @@ export async function extractReceipt(file: File): Promise<ExtractedReceipt> {
   }
 
   const buffer = await file.arrayBuffer();
-  const modelId =
-    process.env.OPENROUTER_RECEIPT_MODEL || "google/gemma-4-31b-it:free";
 
   const { output } = await generateText({
-    model: openrouter(modelId),
+    model: openrouter("openrouter/auto"),
     temperature: 0,
     output: Output.object({ schema: receiptSchema }),
     messages: [
@@ -177,7 +179,11 @@ function createMockExtraction(file: File): ExtractedReceipt {
       type: file.type || "application/octet-stream",
       size: file.size,
     },
-    store: { name: storeName, location: null, confidence: storeName ? "medium" : "low" },
+    store: {
+      name: storeName,
+      location: null,
+      confidence: storeName ? "medium" : "low",
+    },
     purchaseDate: { value: toFranceDate(new Date()), confidence: "low" },
     lineItems: inferLineItems(fileName, confidence),
     extractionConfidence: confidence,
@@ -221,8 +227,10 @@ function createLineItem(
 function inferStoreName(fileName: string) {
   if (fileName.includes("carrefour")) return "Carrefour";
   if (fileName.includes("monoprix")) return "Monoprix";
-  if (fileName.includes("leclerc") || fileName.includes("e-leclerc")) return "E.Leclerc";
-  if (fileName.includes("intermarche") || fileName.includes("intermarch")) return "Intermarche";
+  if (fileName.includes("leclerc") || fileName.includes("e-leclerc"))
+    return "E.Leclerc";
+  if (fileName.includes("intermarche") || fileName.includes("intermarch"))
+    return "Intermarche";
   return null;
 }
 
